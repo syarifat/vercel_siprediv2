@@ -20,7 +20,7 @@
                 <!-- Name -->
                 <div class="mb-2">
                     <x-input-label for="name" :value="__('Name')" />
-                    <x-text-input id="name" class="block w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 text-sm mt-1"
+                    <x-text-input id="name" class="block w-full px-3 py-1.5 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500 text-sm mt-1 bg-white text-gray-900"
                         type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
                     <x-input-error :messages="$errors->get('name')" class="mt-1" />
                 </div>

@@ -8,7 +8,6 @@
                     siPredi <span class="text-yellow-500">SMP ISLAM</span> TULUNGAGUNG
                 </span>
                 <div class="mt-2 text-lg font-semibold text-gray-700 text-center">
-                    <!-- Sistem Presensi Digital<br> -->
                     <span class="text-gray-700 text-2xl font-bold">Sistem Presensi Digital</span>
                 </div>
             </div>
@@ -47,9 +46,16 @@
                             Forgot password?
                         </a>
                     @endif
+                    
                 </div>
                 <button type="submit" class="w-full py-2 rounded-md bg-cyan-600 text-white font-bold shadow hover:bg-cyan-700 transition">Sign In</button>
             </form>
+            <!-- Info untuk guru yang didaftarkan admin -->
+            <div class="mt-6 text-center">
+                <span class="text-sm text-gray-600">
+                    Guru yang didaftarkan oleh admin dan belum memiliki password, silakan <a href="{{ route('set-password.create') }}" class="text-cyan-700 font-bold underline">atur password di sini</a>.
+                </span>
+            </div>
             <!-- Info Sekolah -->
             <div class="mt-8 text-xs text-gray-700 text-center">
                 <span class="font-bold text-cyan-700">SMK Islam Tulungagung</span><br>

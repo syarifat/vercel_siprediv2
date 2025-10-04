@@ -11,6 +11,7 @@ class Absensi extends Model
         'siswa_id',
         'tanggal',
         'jam',
+        'jam_pulang',
         'status',
         'keterangan',
         'user_id',
