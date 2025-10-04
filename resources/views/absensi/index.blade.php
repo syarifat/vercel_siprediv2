@@ -99,6 +99,7 @@
                 <th class="px-4 py-2 border-orange-400 text-center">No Absen</th>
                 <th class="px-4 py-2 border-orange-400 text-center">Tanggal</th>
                 <th class="px-4 py-2 border-orange-400 text-center">Jam</th>
+                <th class="px-4 py-2 border-orange-400 text-center">Jam Pulang</th> <!-- Tambahkan ini -->
                 <th class="px-4 py-2 border-orange-400 text-center">Status</th>
                 <th class="px-4 py-2 border-orange-400 text-center">Keterangan</th>
                 <th class="px-4 py-2 border-orange-400 text-center">Aksi</th>
@@ -114,6 +115,7 @@
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->rombel->nomor_absen ?? ($row->siswa->rombel->nomor_absen ?? '-') }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->tanggal }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->jam }}</td>
+                <td class="px-4 py-2 border-orange-200 text-center">{{ $row->jam_pulang ?? '-' }}</td> <!-- Tambahkan ini -->
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->status }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->keterangan ?? '-' }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">
@@ -147,6 +149,7 @@ function fetchAbsensi() {
                     <td class="px-4 py-2 border-orange-200 text-center">${row.nomor_absen ?? '-'}</td>
                     <td class="px-4 py-2 border-orange-200 text-center">${row.tanggal ?? '-'}</td>
                     <td class="px-4 py-2 border-orange-200 text-center">${row.jam ?? '-'}</td>
+                    <td class="px-4 py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
                     <td class="px-4 py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
                     <td class="px-4 py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
                     <td class="px-4 py-2 border-orange-200 text-center">

@@ -120,8 +120,8 @@ class ApiAbsensiController extends Controller
                     'jam_tap' => $absensi->jam_pulang,
                 ]);
             }
+            // Hanya update jam_pulang, tidak mengubah status
             $absensi->jam_pulang = $jam;
-            $absensi->status = 'pulang';
             $absensi->save();
 
             // Kirim WhatsApp ke orang tua saat pulang
@@ -199,6 +199,7 @@ class ApiAbsensiController extends Controller
                 'kelas_nama' => ($row->siswa && $row->siswa->rombel && $row->siswa->rombel->kelas) ? $row->siswa->rombel->kelas->nama : '-',
                 'tanggal' => $row->tanggal,
                 'jam' => $row->jam,
+                'jam_pulang' => $row->jam_pulang, // <--- tambahkan ini
                 'status' => $row->status,
                 'keterangan' => $row->keterangan,
             ];

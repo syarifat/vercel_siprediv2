@@ -37,6 +37,7 @@ Route::get('/absensi-terbaru', function(Request $request) {
 			'kelas_nama' => ($rombel && $rombel->kelas) ? $rombel->kelas->nama : '-',
 			'tanggal' => $row->tanggal,
 			'jam' => $row->jam,
+			'jam_pulang' => $row->jam_pulang ?? '-', // <-- tambahkan ini
 			'status' => ucfirst($row->status),
 			'keterangan' => $row->keterangan,
 		];
