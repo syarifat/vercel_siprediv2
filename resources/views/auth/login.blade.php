@@ -1,11 +1,11 @@
 <x-guest-layout>
-    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300">
-        <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
             <!-- Logo & Judul -->
             <div class="flex flex-col items-center mb-6">
                 <img src="{{ asset('logo.svg') }}" alt="Logo" class="h-12 mb-2">
                 <span class="text-3xl font-bold text-cyan-700 text-center leading-tight">
-                    siPredi <span class="text-yellow-500">SMP ISLAM</span> TULUNGAGUNG
+                    <span class="text-yellow-500">SMPI AL-HIDAYAH</span> <br>SAMIR
+
                 </span>
                 <div class="mt-2 text-lg font-semibold text-gray-700 text-center">
                     <span class="text-gray-700 text-2xl font-bold">Sistem Presensi Digital</span>
@@ -58,24 +58,23 @@
             </div>
             <!-- Info Sekolah -->
             <div class="mt-8 text-xs text-gray-700 text-center">
-                <span class="font-bold text-cyan-700">SMK Islam Tulungagung</span><br>
-                Jl. Patah Jali, No. 34, Batangsaren, Kauman<br>
-                Kabupaten Tulungagung, Kode Pos 66261<br>
-                Telepon: 087842 (949212)<br>
-                Website: <a href="https://www.sat-project.me" class="text-blue-600 underline">https://sat-project.me</a>
+                <span class="font-bold text-cyan-700">SMPI AL HIDAYAH SAMIR</span><br>
+                Ds. Samir, Kec. Ngunut<br>
+                Kabupaten Tulungagung, Kode Pos 66292<br>
             </div>
             <div class="mt-4 text-xs text-gray-500 text-center">
                 Copyright &copy; 2025 <span class="font-bold text-yellow-500">SAT Project</span>.
+                <br>
+                <a href="https://sat-project.me" target="_blank" class="text-blue-600 underline">sat-project.me</a>
             </div>
         </div>
-    </div>
     <script>
         function togglePassword() {
             const input = document.getElementById('password');
             const eye = document.getElementById('eye');
             if (input.type === 'password') {
                 input.type = 'text';
-                eye.style.opacity = 0.5;
+                eye.style.opacity = 0.5; 
             } else {
                 input.type = 'password';
                 eye.style.opacity = 1;
