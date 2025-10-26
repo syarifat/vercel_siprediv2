@@ -2,42 +2,37 @@
 
 @section('content')
 <div class="max-w-3xl mx-auto mt-8">
-    <h2 class="text-xl font-bold mb-4">Daftar Kelas</h2>
-
-    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6 flex items-center">
-        <svg class="w-6 h-6 mr-2 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
-        </svg>
-        <span>
-            <strong>PERINGATAN:</strong> Jangan menghapus data kelas tanpa persetujuan developer!
-            Menghapus kelas akan menghapus seluruh data siswa yang terkait di rombel kelas tersebut.
-        </span>
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Daftar Kelas</h2>
+        <a href="{{ route('kelas.create') }}" class="px-3 py-1 bg-green-500 text-white rounded">Tambah Kelas</a>
     </div>
 
-    <a href="{{ route('kelas.create') }}"
-       class="bg-green-400 hover:bg-green-500 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200 mb-4 inline-block">
-        + Tambah Kelas
-    </a>
-    <table class="min-w-full border-2 border-orange-400 rounded-lg overflow-hidden shadow border-collapse">
-        <thead>
-            <tr class="bg-orange-500 text-white border-b-2 border-orange-400">
-                <th class="px-2 py-2 font-semibold text-center w-12">No</th>
-                <th class="px-4 py-2 font-semibold text-center">Nama Kelas</th>
-                <th class="px-4 py-2 font-semibold text-center">Aksi</th>
+    @if(session('success'))
+        <div class="mb-3 p-2 bg-green-100 text-green-800 rounded">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="mb-3 p-2 bg-red-100 text-red-800 rounded">{{ session('error') }}</div>
+    @endif
+
+    <table class="w-full border">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="p-2 text-center">No</th>
+                <th class="p-2 text-left">Nama Kelas</th>
+                <th class="p-2 text-center">Aksi</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($kelas as $i => $row)
-            <tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
-                <td class="px-2 py-2 text-center w-12">{{ $i+1 }}</td>
-                <td class="px-4 py-2 text-center">{{ $row->nama }}</td>
-                <td class="px-4 py-2 text-center">
-                    <a href="{{ route('kelas.edit', $row) }}" class="text-blue-600">Edit</a>
-                    <form action="{{ route('kelas.destroy', $row) }}" method="POST" class="inline">
+            @foreach($kelas as $i => $k)
+            <tr class="{{ $i % 2 ? 'bg-white' : 'bg-gray-50' }}">
+                <td class="p-2 text-center">{{ $loop->iteration }}</td>
+                <td class="p-2">{{ $k->nama }}</td>
+                <td class="p-2 text-center">
+                    <a href="{{ route('kelas.edit', $k->id) }}" class="text-blue-600 mr-2">Edit</a>
+                    <form action="{{ route('kelas.destroy', $k->id) }}" method="POST" class="inline" onsubmit="return confirm('Hapus kelas ini?')">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="text-pink-600 ml-2" onclick="return confirm('Yakin hapus?')">Hapus</button>
+                        <button type="submit" class="text-red-600">Hapus</button>
                     </form>
                 </td>
             </tr>

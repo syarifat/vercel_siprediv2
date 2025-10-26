@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Absensi;
 use App\Models\Siswa;
+use App\Models\RombelSiswa;
 use App\Services\FonnteService;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel; // untuk export Excel
@@ -18,9 +19,10 @@ class AbsensiController extends Controller
     {
         // Filter: kelas, tanggal, search
         $query = Absensi::query();
+        // filter by kelas through rombel relation
         if ($request->filled('kelas_id')) {
-            $query->whereHas('siswa', function($q) use ($request) {
-                $q->where('kelas_id', $request->kelas_id);
+            $query->whereHas('rombel.kelas', function($q) use ($request) {
+                $q->where('id', $request->kelas_id);
             });
         }
         if ($request->filled('tanggal')) {
@@ -28,12 +30,12 @@ class AbsensiController extends Controller
         }
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('siswa', function($q) use ($search) {
+            $query->whereHas('rombel.siswa', function($q) use ($search) {
                 $q->where('nama', 'like', "%$search%")
                   ->orWhere('nis', 'like', "%$search%");
             });
         }
-        $absensi = $query->with(['siswa.rombel.kelas'])->orderBy('tanggal', 'desc')->get();
+        $absensi = $query->with(['rombel.siswa','rombel.kelas'])->orderBy('tanggal', 'desc')->get();
         return view('absensi.index', compact('absensi'));
     }
 
@@ -43,7 +45,9 @@ class AbsensiController extends Controller
     public function create()
     {
         // Tampilkan form tambah absensi
-        return view('absensi.create');
+        // For student absensi we expect selecting rombel_siswa (student in class)
+        $rombels = RombelSiswa::with(['siswa','kelas'])->orderBy('nomor_absen')->get();
+        return view('absensi.create', compact('rombels'));
     }
 
     /**
@@ -52,31 +56,32 @@ class AbsensiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'siswa_id' => 'required|exists:siswa,id',
+            'rombel_siswa_id' => 'required|exists:rombel_siswa,id',
             'tanggal' => 'required|date',
-            'jam' => 'required',
+            'jam_masuk' => 'required',
             'status' => 'required|in:hadir,izin,sakit,alpha',
             'keterangan' => 'nullable',
         ]);
+
         $absensi = Absensi::create([
-            'siswa_id' => $request->siswa_id,
+            'rombel_siswa_id' => $request->rombel_siswa_id,
             'tanggal' => $request->tanggal,
-            'jam' => $request->jam,
+            'jam_masuk' => $request->jam_masuk,
+            'jam_pulang' => $request->jam_pulang ?? null,
             'status' => $request->status,
             'keterangan' => $request->keterangan,
-            'user_id' => auth()->id(),
         ]);
 
-        // Kirim WA ke orang tua
-        $siswa = Siswa::find($request->siswa_id);
-        if ($siswa && $siswa->no_hp_ortu) {
-            $wa = $siswa->no_hp_ortu;
+        // Kirim WA ke orang tua via rombel->siswa
+        $rombel = RombelSiswa::with('siswa')->find($request->rombel_siswa_id);
+        if ($rombel && $rombel->siswa && $rombel->siswa->no_hp_ortu) {
+            $wa = $rombel->siswa->no_hp_ortu;
             // Pastikan format nomor sudah 62xxx
             if (substr($wa, 0, 1) === '0') {
                 $wa = '62' . substr($wa, 1);
             }
-            $message = "Assalamualaikum, Orang Tua/Wali dari {$siswa->nama}.\n" .
-                "Ananda telah melakukan absensi pada tanggal {$request->tanggal} jam {$request->jam} dengan status: {$request->status}.";
+            $message = "Assalamualaikum, Orang Tua/Wali dari {$rombel->siswa->nama}.\n" .
+                "Ananda telah melakukan absensi pada tanggal {$request->tanggal} jam {$request->jam_masuk} dengan status: {$request->status}.";
             $fonnte = new FonnteService();
             $fonnte->sendMessage($wa, $message);
         }

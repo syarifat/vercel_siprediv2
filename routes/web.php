@@ -9,6 +9,7 @@ use App\Http\Controllers\AbsensiController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RombelSiswaController;
 use App\Http\Controllers\GuruController;
+use App\Http\Controllers\AbsensiGuruController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -31,6 +32,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('siswa', SiswaController::class);
     Route::resource('rombel_siswa', RombelSiswaController::class);
     Route::resource('absensi', AbsensiController::class);
+    // resource route untuk absensi guru (web) — use underscore URI and route names 'absensi_guru.*'
+    Route::resource('absensi_guru', AbsensiGuruController::class);
     Route::resource('kelas', KelasController::class);
     Route::resource('tahun_ajaran', TahunAjaranController::class);
     Route::resource('user', UserController::class);
@@ -44,6 +47,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['au
 Route::get('/whatsapp', [\App\Http\Controllers\WhatsappController::class, 'index'])->name('whatsapp.index')->middleware('auth');
 Route::post('/whatsapp/send', [\App\Http\Controllers\WhatsappController::class, 'send'])->name('whatsapp.send')->middleware('auth');
 Route::get('/absensi/export/{type}', [\App\Http\Controllers\AbsensiController::class, 'export'])->name('absensi.export');
+Route::get('/absensi_guru/export/{type}', [\App\Http\Controllers\AbsensiGuruController::class, 'export'])->name('absensi_guru.export');
 Route::get('/whatsapp/status', [\App\Http\Controllers\WhatsappController::class, 'status'])->name('whatsapp.status');
 Route::get('/whatsapp/qr', [\App\Http\Controllers\WhatsappController::class, 'qr'])->name('whatsapp.qr');
 Route::post('/webhook/fonnte', [\App\Http\Controllers\WhatsappController::class, 'webhook'])->name('whatsapp.webhook');

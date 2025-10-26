@@ -92,7 +92,7 @@
                             <td class="px-4 py-2">{{ $row->siswa->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->rombel && $row->rombel->kelas ? $row->rombel->kelas->nama : '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->tanggal }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->jam }}</td>
                         </tr>
                         @endforeach
@@ -120,7 +120,7 @@
                             <td class="px-4 py-2">{{ $row->siswa->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->rombel && $row->siswa->rombel->kelas ? $row->siswa->rombel->kelas->nama : '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->tanggal }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->jam }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->keterangan ?? '-' }}</td>
                         </tr>
@@ -148,7 +148,7 @@
                             <td class="px-4 py-2">{{ $row->siswa->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->rombel && $row->siswa->rombel->kelas ? $row->siswa->rombel->kelas->nama : '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->tanggal }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->jam }}</td>
                         </tr>
                         @endforeach

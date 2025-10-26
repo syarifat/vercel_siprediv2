@@ -19,9 +19,9 @@
             <form method="POST" action="{{ route('login') }}">
                 @csrf
                 <div class="mb-4">
-                    <input id="email" type="text" name="email" placeholder="Username" required autofocus autocomplete="username"
+                    <input id="username" type="text" name="username" placeholder="Username" required autofocus autocomplete="username"
                         class="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-cyan-500 focus:border-cyan-500" />
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
+                    <x-input-error :messages="$errors->get('username')" class="mt-2" />
                 </div>
                 <div class="mb-4">
                     <div class="relative">

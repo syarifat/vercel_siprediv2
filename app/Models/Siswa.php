@@ -2,25 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Siswa extends Model
 {
+    use HasFactory;
+
+    protected $table = 'siswa';
+
     protected $fillable = [
-        'nama',
         'nis',
+        'nama',
+        'jenis_kelamin',
         'no_hp_ortu',
         'rfid',
         'status',
     ];
-    protected $table = 'siswa';
 
     public function rombel()
     {
-        return $this->hasOne(\App\Models\RombelSiswa::class, 'siswa_id');
-    }
-    public function absensi()
-    {
-        return $this->hasMany(\App\Models\Absensi::class, 'siswa_id');
+        return $this->hasMany(RombelSiswa::class, 'siswa_id');
     }
 }

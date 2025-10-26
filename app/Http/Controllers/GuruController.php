@@ -9,7 +9,7 @@ class GuruController extends Controller
 {
     public function index()
     {
-        $guru = Guru::all();
+        $guru = Guru::orderBy('nama')->get();
         return view('guru.index', compact('guru'));
     }
 
@@ -22,27 +22,15 @@ class GuruController extends Controller
     {
         $request->validate([
             'nama' => 'required|string|max:100',
-            'nip' => 'nullable|string|max:30',
+            'nip' => 'nullable|string|max:50',
+            'rfid' => 'nullable|string|max:32|unique:guru,rfid',
             'no_hp' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:100',
-            'alamat' => 'nullable|string',
-            'status' => 'required|string',
+            'status' => 'required|in:aktif,nonaktif',
         ]);
-        $guru = Guru::create($request->all());
 
-        // Tambahkan ke tabel users jika email ada dan belum terdaftar
-        if ($guru->email) {
-            $user = \App\Models\User::where('email', $guru->email)->first();
-            if (!$user) {
-                \App\Models\User::create([
-                    'name' => $guru->nama,
-                    'email' => $guru->email,
-                    'password' => null,
-                    'role' => 'guru',
-                ]);
-            }
-        }
-        return redirect()->route('guru.index')->with('success', 'Guru berhasil ditambahkan dan akun user guru dibuat.');
+        Guru::create($request->only(['nama','nip','rfid','no_hp','status']));
+
+        return redirect()->route('guru.index')->with('success', 'Guru berhasil ditambahkan.');
     }
 
     public function edit($id)
@@ -54,15 +42,17 @@ class GuruController extends Controller
     public function update(Request $request, $id)
     {
         $guru = Guru::findOrFail($id);
+
         $request->validate([
             'nama' => 'required|string|max:100',
-            'nip' => 'nullable|string|max:30',
+            'nip' => 'nullable|string|max:50',
+            'rfid' => 'nullable|string|max:32|unique:guru,rfid,' . $guru->id,
             'no_hp' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:100',
-            'alamat' => 'nullable|string',
-            'status' => 'required|string',
+            'status' => 'required|in:aktif,nonaktif',
         ]);
-        $guru->update($request->all());
+
+        $guru->update($request->only(['nama','nip','rfid','no_hp','status']));
+
         return redirect()->route('guru.index')->with('success', 'Guru berhasil diupdate.');
     }
 

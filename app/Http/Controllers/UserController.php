@@ -10,7 +10,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
+        $users = User::orderBy('username')->get();
         return view('user.index', compact('users'));
     }
 
@@ -22,17 +22,17 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'role' => 'required|string',
+            'username' => 'required|string|max:100|unique:users,username',
+            'password' => 'required|string|min:6|confirmed',
+            'role' => 'required|in:superadmin,admin,guru',
         ]);
+
         User::create([
-            'name' => $request->name,
-            'email' => $request->email,
+            'username' => $request->username,
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
+
         return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan.');
     }
 
@@ -45,21 +45,24 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
+
         $request->validate([
-            'name' => 'required|string|max:100',
-            'email' => 'required|email|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:6',
-            'role' => 'required|string',
+            'username' => 'required|string|max:100|unique:users,username,' . $user->id,
+            'password' => 'nullable|string|min:6|confirmed',
+            'role' => 'required|in:superadmin,admin,guru',
         ]);
+
         $data = [
-            'name' => $request->name,
-            'email' => $request->email,
+            'username' => $request->username,
             'role' => $request->role,
         ];
+
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
+
         $user->update($data);
+
         return redirect()->route('user.index')->with('success', 'User berhasil diupdate.');
     }
 

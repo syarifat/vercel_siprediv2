@@ -4,6 +4,30 @@
 <div class="max-w-6xl mx-auto mt-8">
     <h2 class="text-xl font-bold mb-4">Rekap Absensi Siswa</h2>
 
+    <!-- Card Rekap Status -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div class="bg-blue-100 rounded-lg shadow p-4 text-center">
+            <div class="text-2xl font-bold text-blue-600" id="card-belum">0</div>
+            <div class="text-sm font-semibold text-blue-700">Belum Hadir</div>
+        </div>
+        <div class="bg-green-100 rounded-lg shadow p-4 text-center">
+            <div class="text-2xl font-bold text-green-600" id="card-hadir">0</div>
+            <div class="text-sm font-semibold text-green-700">Hadir</div>
+        </div>
+        <div class="bg-yellow-100 rounded-lg shadow p-4 text-center">
+            <div class="text-2xl font-bold text-yellow-600" id="card-izin">0</div>
+            <div class="text-sm font-semibold text-yellow-700">Izin</div>
+        </div>
+        <div class="bg-red-100 rounded-lg shadow p-4 text-center">
+            <div class="text-2xl font-bold text-red-600" id="card-sakit">0</div>
+            <div class="text-sm font-semibold text-red-700">Sakit</div>
+        </div>
+        <div class="bg-pink-100 rounded-lg shadow p-4 text-center">
+            <div class="text-2xl font-bold text-pink-600" id="card-alpha">0</div>
+            <div class="text-sm font-semibold text-pink-700">Alpha</div>
+        </div>
+    </div>
+
     <!-- Filter untuk View Tabel -->
     <div class="mb-6 flex flex-wrap gap-4 items-center">
         <!-- Search Box -->
@@ -98,7 +122,7 @@
                 <th class="px-4 py-2 border-orange-400 text-center">Kelas</th>
                 <th class="px-4 py-2 border-orange-400 text-center">No Absen</th>
                 <th class="px-4 py-2 border-orange-400 text-center">Tanggal</th>
-                <th class="px-4 py-2 border-orange-400 text-center">Jam</th>
+                <th class="px-4 py-2 border-orange-400 text-center">Jam Masuk</th>
                 <th class="px-4 py-2 border-orange-400 text-center">Jam Pulang</th> <!-- Tambahkan ini -->
                 <th class="px-4 py-2 border-orange-400 text-center">Status</th>
                 <th class="px-4 py-2 border-orange-400 text-center">Keterangan</th>
@@ -113,9 +137,9 @@
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->rombel && $row->rombel->siswa ? $row->rombel->siswa->nis : '-' }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->rombel && $row->rombel->kelas ? $row->rombel->kelas->nama : '-' }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->rombel->nomor_absen ?? ($row->siswa->rombel->nomor_absen ?? '-') }}</td>
-                <td class="px-4 py-2 border-orange-200 text-center">{{ $row->tanggal }}</td>
-                <td class="px-4 py-2 border-orange-200 text-center">{{ $row->jam }}</td>
-                <td class="px-4 py-2 border-orange-200 text-center">{{ $row->jam_pulang ?? '-' }}</td> <!-- Tambahkan ini -->
+                <td class="px-4 py-2 border-orange-200 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
+                <td class="px-4 py-2 border-orange-200 text-center">{{ $row->jam_masuk ?? '-' }}</td>
+                <td class="px-4 py-2 border-orange-200 text-center">{{ $row->jam_pulang ?? '-' }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->status }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">{{ $row->keterangan ?? '-' }}</td>
                 <td class="px-4 py-2 border-orange-200 text-center">
@@ -133,32 +157,63 @@
 <script>
 function fetchAbsensi() {
     const search = document.getElementById('search').value;
-    const tanggal = document.getElementById('tanggal').value;
+    const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10); // default hari ini
     const kelas_id = document.getElementById('kelas_id').value;
+
     let url = `/api/absensi-terbaru?search=${encodeURIComponent(search)}&tanggal=${encodeURIComponent(tanggal)}&kelas_id=${encodeURIComponent(kelas_id)}`;
     fetch(url)
         .then(res => res.json())
         .then(data => {
             let tbody = '';
-            data.forEach((row, i) => {
-                tbody += `<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
-                    <td class="px-4 py-2 border-orange-200 text-center">${i+1}</td>
-                    <td class="px-4 py-2 border-orange-200">${row.siswa_nama ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.siswa_nis ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.kelas_nama ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.nomor_absen ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.tanggal ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.jam ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
-                    <td class="px-4 py-2 border-orange-200 text-center">
-                        <a href="/absensi/${row.id}" class="text-blue-600">Detail</a>
-                        <a href="/absensi/${row.id}/edit" class="text-pink-600 ml-2">Edit</a>
-                    </td>
-                </tr>`;
-            });
-            document.querySelector('tbody').innerHTML = tbody;
+            let countHadir = 0, countIzin = 0, countSakit = 0, countAlpha = 0;
+
+            // Ambil semua siswa di kelas yang difilter
+            fetch(`/api/siswa?kelas_id=${kelas_id}`)
+                .then(res => res.json())
+                .then(siswaList => {
+                    // Buat array NIS siswa yang sudah absen hari itu
+                    let absenNis = data.map(row => row.siswa_nis);
+
+                    // Hitung siswa yang belum absen (belum hadir)
+                    let countBelum = siswaList.filter(siswa => !absenNis.includes(siswa.nis)).length;
+
+                    // Hitung status dari data absensi (case-insensitive)
+                    data.forEach(row => {
+                        const status = (row.status || '').toString().toLowerCase();
+                        if (status === 'hadir') countHadir++;
+                        else if (status === 'izin') countIzin++;
+                        else if (status === 'sakit') countSakit++;
+                        else if (status === 'alpha') countAlpha++;
+                    });
+
+                    // Update card
+                    document.getElementById('card-belum').textContent = countBelum;
+                    document.getElementById('card-hadir').textContent = countHadir;
+                    document.getElementById('card-izin').textContent = countIzin;
+                    document.getElementById('card-sakit').textContent = countSakit;
+                    document.getElementById('card-alpha').textContent = countAlpha;
+
+                    // Update tbody
+                    data.forEach((row, i) => {
+                        tbody += `<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
+                            <td class="px-4 py-2 border-orange-200 text-center">${i+1}</td>
+                            <td class="px-4 py-2 border-orange-200">${row.siswa_nama ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.siswa_nis ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.kelas_nama ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.nomor_absen ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.tanggal ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.jam_masuk ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
+                            <td class="px-4 py-2 border-orange-200 text-center">
+                                <a href="/absensi/${row.id}" class="text-blue-600">Detail</a>
+                                <a href="/absensi/${row.id}/edit" class="text-pink-600 ml-2">Edit</a>
+                            </td>
+                        </tr>`;
+                    });
+                    document.querySelector('tbody').innerHTML = tbody;
+                });
         });
 }
 document.getElementById('search').addEventListener('input', fetchAbsensi);

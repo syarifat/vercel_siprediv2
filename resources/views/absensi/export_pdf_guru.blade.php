@@ -1,26 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Export Absensi PDF</title>
+    <title>Export Absensi Guru PDF</title>
     <style>
         table { width: 100%; border-collapse: collapse; }
         th, td { border: 1px solid #888; padding: 6px; text-align: center; }
-        th { background: #d1fae5; }
-        tr:nth-child(even) { background: #f3f4f6; } /* abu-abu muda */
-        tr:nth-child(odd) { background: #fff; }
+        th { background: #dbeafe; }
+        tr:nth-child(even) { background: #f8fafc; }
     </style>
 </head>
 <body>
-    <h2>Rekap Absensi Siswa</h2>
+    <h2>Rekap Absensi Guru</h2>
     <table>
         <thead>
             <tr>
                 <th>No</th>
-                <th>Nama</th>
-                <th>No. Absen</th>
-                <th>NIS</th>
+                <th>Nama Guru</th>
                 <th>Tanggal</th>
-                <th>Jam</th>
+                <th>Jam Masuk</th>
+                <th>Jam Pulang</th>
                 <th>Status</th>
                 <th>Keterangan</th>
             </tr>
@@ -29,11 +27,10 @@
             @foreach($absensi as $i => $row)
             <tr>
                 <td>{{ $i+1 }}</td>
-                <td>{{ $row->siswa->nama ?? '-' }}</td>
-                <td>{{ $row->siswa->rombel->nomor_absen ?? '-' }}</td>
-                <td>{{ $row->siswa->nis ?? '-' }}</td>
+                <td>{{ $row->guru->nama ?? '-' }}</td>
                 <td>{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
-                <td>{{ $row->jam }}</td>
+                <td>{{ $row->jam_masuk ?? '-' }}</td>
+                <td>{{ $row->jam_pulang ?? '-' }}</td>
                 <td>{{ $row->status }}</td>
                 <td>{{ $row->keterangan ?? '-' }}</td>
             </tr>

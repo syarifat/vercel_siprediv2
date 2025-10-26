@@ -6,6 +6,7 @@ use App\Models\Kelas;
 use App\Models\TahunAjaran;
 use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\RombelSiswa; // <-- ditambahkan untuk pengecekan dependensi
 
 class KelasController extends Controller
 {
@@ -48,6 +49,13 @@ class KelasController extends Controller
     public function destroy($id)
     {
         $kelas = Kelas::findOrFail($id);
+
+        // jangan hapus kelas jika ada penempatan rombel_siswa terkait
+        if (RombelSiswa::where('kelas_id', $kelas->id)->exists()) {
+            return redirect()->route('kelas.index')
+                ->with('error', 'Kelas tidak dapat dihapus: masih ada siswa/rombel yang terkait. Hapus/relokasi rombel terlebih dahulu.');
+        }
+
         $kelas->delete();
         return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dihapus.');
     }

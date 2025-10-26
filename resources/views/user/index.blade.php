@@ -7,8 +7,7 @@
     <table class="min-w-full border-2 border-orange-400 rounded-lg overflow-hidden shadow border-collapse">
         <thead>
             <tr class="bg-orange-500 text-white border-b-2 border-orange-400 rounded-none">
-                <th class="px-4 py-2 text-left font-semibold">Nama</th>
-                <th class="px-4 py-2 text-center font-semibold">Email</th>
+                <th class="px-4 py-2 text-left font-semibold">Username</th>
                 <th class="px-4 py-2 text-center font-semibold">Role</th>
                 <th class="px-4 py-2 text-center font-semibold">Aksi</th>
             </tr>
@@ -16,9 +15,8 @@
         <tbody>
             @foreach($users as $i => $user)
             <tr class="{{ $i % 2 == 0 ? 'bg-white' : 'bg-gray-100' }} border-b border-orange-200 hover:bg-orange-50">
-                <td class="px-4 py-2 text-left">{{ $user->name }}</td>
-                <td class="px-4 py-2 text-center">{{ $user->email }}</td>
-                <td class="px-4 py-2 text-center">{{ $user->role }}</td>
+                <td class="px-4 py-2 text-left">{{ $user->username }}</td>
+                <td class="px-4 py-2 text-center">{{ ucfirst($user->role) }}</td>
                 <td class="px-4 py-2 text-center">
                     <a href="{{ route('user.edit', $user) }}" class="text-blue-600">Edit</a>
                     <form action="{{ route('user.destroy', $user) }}" method="POST" class="inline">
@@ -30,9 +28,5 @@
             @endforeach
         </tbody>
     </table>
-    {{-- Jika menggunakan paginate di controller, aktifkan baris di bawah ini: --}}
-    {{-- <div class="mt-4">
-        {{ $users->links() }}
-    </div> --}}
 </div>
 @endsection
