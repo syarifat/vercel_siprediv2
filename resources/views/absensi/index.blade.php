@@ -4,28 +4,33 @@
 <div class="max-w-6xl mx-auto mt-8">
     <h2 class="text-xl font-bold mb-4">Rekap Absensi Siswa</h2>
 
-    <!-- Card Rekap Status -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div class="bg-blue-100 rounded-lg shadow p-4 text-center">
+    <!-- Card Rekap Status (clickable) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <button type="button" onclick="toggleCardDetails('belum')" class="bg-blue-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
             <div class="text-xl sm:text-2xl font-bold text-blue-600" id="card-belum">0</div>
             <div class="text-xs sm:text-sm font-semibold text-blue-700">Belum Hadir</div>
-        </div>
-        <div class="bg-green-100 rounded-lg shadow p-4 text-center">
+        </button>
+        <button type="button" onclick="toggleCardDetails('hadir')" class="bg-green-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
             <div class="text-xl sm:text-2xl font-bold text-green-600" id="card-hadir">0</div>
             <div class="text-xs sm:text-sm font-semibold text-green-700">Hadir</div>
-        </div>
-        <div class="bg-yellow-100 rounded-lg shadow p-4 text-center">
+        </button>
+        <button type="button" onclick="toggleCardDetails('izin')" class="bg-yellow-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
             <div class="text-xl sm:text-2xl font-bold text-yellow-600" id="card-izin">0</div>
             <div class="text-xs sm:text-sm font-semibold text-yellow-700">Izin</div>
-        </div>
-        <div class="bg-red-100 rounded-lg shadow p-4 text-center">
+        </button>
+        <button type="button" onclick="toggleCardDetails('sakit')" class="bg-red-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
             <div class="text-xl sm:text-2xl font-bold text-red-600" id="card-sakit">0</div>
             <div class="text-xs sm:text-sm font-semibold text-red-700">Sakit</div>
-        </div>
-        <div class="bg-pink-100 rounded-lg shadow p-4 text-center">
+        </button>
+        <button type="button" onclick="toggleCardDetails('alpha')" class="bg-pink-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
             <div class="text-xl sm:text-2xl font-bold text-pink-600" id="card-alpha">0</div>
             <div class="text-xs sm:text-sm font-semibold text-pink-700">Alpha</div>
-        </div>
+        </button>
+    </div>
+
+    <!-- Card details container (hidden until a card is clicked) -->
+    <div id="card-details" class="hidden mb-6">
+        <!-- details will be injected here by JS -->
     </div>
 
     <!-- Filter untuk View Tabel -->
@@ -144,8 +149,7 @@
                 <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->status }}</td>
                 <td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->keterangan ?? '-' }}</td>
                 <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
-                    <a href="{{ route('absensi.show', $row) }}" class="text-blue-600 text-sm">Detail</a>
-                    <a href="{{ route('absensi.edit', $row) }}" class="text-pink-600 ml-2 text-sm">Edit</a>
+                    <a href="{{ route('absensi.edit', $row) }}" class="text-pink-600 text-sm">Edit</a>
                 </td>
             </tr>
             @endforeach
@@ -195,6 +199,10 @@ function fetchAbsensi() {
                     document.getElementById('card-sakit').textContent = countSakit;
                     document.getElementById('card-alpha').textContent = countAlpha;
 
+                    // store latest fetched data for card details
+                    window.latestAbsensiData = data;
+                    window.latestSiswaList = siswaList;
+
                     // Update tbody
                     data.forEach((row, i) => {
                         tbody += `<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
@@ -209,12 +217,16 @@ function fetchAbsensi() {
                             <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
                             <td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
                             <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
-                                <a href="/absensi/${row.id}" class="text-blue-600 text-sm">Detail</a>
-                                <a href="/absensi/${row.id}/edit" class="text-pink-600 ml-2 text-sm">Edit</a>
+                                <a href="/absensi/${row.id}/edit" class="text-pink-600 text-sm">Edit</a>
                             </td>
                         </tr>`;
                     });
                     document.querySelector('tbody').innerHTML = tbody;
+
+                    // if details panel is open, refresh it
+                    if (window.currentCardOpen) {
+                        renderCardDetails(window.currentCardOpen);
+                    }
                 });
         });
 }
@@ -223,6 +235,86 @@ document.getElementById('tanggal').addEventListener('change', fetchAbsensi);
 document.getElementById('kelas_id').addEventListener('change', fetchAbsensi);
 setInterval(fetchAbsensi, 3000);
 window.addEventListener('DOMContentLoaded', fetchAbsensi);
+// Card detail functionality
+window.currentCardOpen = null;
+function toggleCardDetails(status) {
+    const container = document.getElementById('card-details');
+    if (window.currentCardOpen === status) {
+        // close
+        container.classList.add('hidden');
+        window.currentCardOpen = null;
+        return;
+    }
+    window.currentCardOpen = status;
+    renderCardDetails(status);
+    container.classList.remove('hidden');
+    // scroll to details
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderCardDetails(status) {
+    const container = document.getElementById('card-details');
+    const kelasId = document.getElementById('kelas_id').value;
+    const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
+
+    const absensi = window.latestAbsensiData || [];
+    const siswaList = window.latestSiswaList || [];
+
+    // helper to render table rows
+    const renderRows = (rows) => {
+        if (!rows.length) return `<tr><td colspan="4" class="px-4 py-2 text-center text-gray-500">Tidak ada data</td></tr>`;
+        return rows.map((r, i) => `
+            <tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
+                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${i+1}</td>
+                <td class="px-2 sm:px-4 py-1 sm:py-2">${r.nama ?? r.siswa_nama ?? '-'}</td>
+                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${r.nis ?? r.siswa_nis ?? '-'}</td>
+                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${r.kelas ?? r.kelas_nama ?? '-'}</td>
+            </tr>
+        `).join('');
+    };
+
+    let title = '';
+    let rowsHtml = '';
+
+    if (status === 'belum') {
+        title = 'Daftar Belum Hadir';
+        const absenNis = new Set(absensi.map(a => a.siswa_nis));
+        const missing = siswaList
+            .filter(s => !absenNis.has(s.nis))
+            .map(s => ({ nama: s.nama, nis: s.nis, kelas: s.kelas_nama || '-' }));
+        rowsHtml = renderRows(missing);
+    } else {
+        title = 'Daftar ' + status.charAt(0).toUpperCase() + status.slice(1);
+        const filtered = absensi
+            .filter(a => (a.status || '').toString().toLowerCase() === status)
+            .map(a => ({ nama: a.siswa_nama, nis: a.siswa_nis, kelas: a.kelas_nama }));
+        rowsHtml = renderRows(filtered);
+    }
+
+    container.innerHTML = `
+        <div class="bg-white border rounded-lg shadow p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-semibold text-lg">${title} — ${tanggal} ${kelasId ? '(Kelas filter aktif)' : ''}</h3>
+                <button type="button" onclick="toggleCardDetails('${status}')" class="text-sm text-gray-600 hover:text-gray-800">Tutup</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full border-2 border-orange-100 rounded-lg overflow-hidden shadow table-auto text-sm">
+                    <thead>
+                        <tr class="bg-orange-100 text-orange-800">
+                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">No</th>
+                            <th class="px-2 sm:px-4 py-1 sm:py-2">Nama</th>
+                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">NIS</th>
+                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">Kelas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
 </script>
 <script>
 function exportAbsensi() {

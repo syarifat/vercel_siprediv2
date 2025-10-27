@@ -4,32 +4,35 @@
 <div class="max-w-6xl mx-auto mt-8">
 	<h2 class="text-xl font-bold mb-4">Rekap Absensi Guru</h2>
 
-	<!-- Card Rekap Status -->
+	<!-- Card Rekap Status (clickable) -->
 	<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-		<div class="bg-blue-100 rounded-lg shadow p-4 text-center">
+		<button type="button" onclick="toggleCardDetails('belum')" class="bg-blue-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
 			<div class="text-xl sm:text-2xl font-bold text-blue-600" id="card-belum">0</div>
 			<div class="text-xs sm:text-sm font-semibold text-blue-700">Belum Hadir</div>
-		</div>
-		<div class="bg-green-100 rounded-lg shadow p-4 text-center">
+		</button>
+		<button type="button" onclick="toggleCardDetails('hadir')" class="bg-green-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
 			<div class="text-xl sm:text-2xl font-bold text-green-600" id="card-hadir">0</div>
 			<div class="text-xs sm:text-sm font-semibold text-green-700">Hadir</div>
-		</div>
-		<div class="bg-yellow-100 rounded-lg shadow p-4 text-center">
+		</button>
+		<button type="button" onclick="toggleCardDetails('izin')" class="bg-yellow-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
 			<div class="text-xl sm:text-2xl font-bold text-yellow-600" id="card-izin">0</div>
 			<div class="text-xs sm:text-sm font-semibold text-yellow-700">Izin</div>
-		</div>
-		<div class="bg-red-100 rounded-lg shadow p-4 text-center">
+		</button>
+		<button type="button" onclick="toggleCardDetails('sakit')" class="bg-red-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
 			<div class="text-xl sm:text-2xl font-bold text-red-600" id="card-sakit">0</div>
 			<div class="text-xs sm:text-sm font-semibold text-red-700">Sakit</div>
-		</div>
-		<div class="bg-pink-100 rounded-lg shadow p-4 text-center">
+		</button>
+		<button type="button" onclick="toggleCardDetails('alpha')" class="bg-pink-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
 			<div class="text-xl sm:text-2xl font-bold text-pink-600" id="card-alpha">0</div>
 			<div class="text-xs sm:text-sm font-semibold text-pink-700">Alpha</div>
-		</div>
+		</button>
 	</div>
 
+	<!-- Card details container (hidden until a card is clicked) -->
+	<div id="card-details" class="hidden mb-6"></div>
+
 	<!-- Filter untuk View Tabel -->
-	<div class="mb-6 grid grid-cols-2 md:grid-cols-4 gap-4 items-center">
+	<div class="mb-6 grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
 		<!-- Search Box -->
 		<div class="relative col-span-2 md:col-span-1">
 			<input type="text" id="search" placeholder="Masukkan nama guru"
@@ -51,23 +54,7 @@
 					   transition duration-200 shadow-sm text-transparent sm:text-gray-700 sm:focus:text-gray-700">
 		</div>
 
-		<!-- Dropdown Kelas (kosong — untuk konsistensi layout) -->
-		<div class="relative col-span-1">
-			<select id="kelas_id"
-				class="border-2 border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full sm:w-48
-					   focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-					   transition duration-200 shadow-sm bg-gray-50 text-gray-700 font-semibold appearance-none">
-				<option value="">-- Pilih Kelas --</option>
-				@foreach(\App\Models\Kelas::all() as $kelas)
-					<option value="{{ $kelas->id }}">{{ $kelas->nama }}</option>
-				@endforeach
-			</select>
-			<span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-				</svg>
-			</span>
-		</div>
+		<!-- (kelas dropdown removed for guru view) -->
 
 		<div class="flex items-center justify-end col-span-1">
 			<button type="button" class="w-full sm:w-auto text-center bg-pink-400 hover:bg-pink-500 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200 focus:outline-none"
@@ -140,20 +127,25 @@
 // Full guru master list (used to compute "Belum Hadir")
 const initialGuruList = @json(\App\Models\Guru::all(['id','nama'])->toArray());
 
+// client-side holders for latest fetched data and currently opened card
+window.currentCardOpen = null;
+window.latestGuruFilteredData = [];
+window.latestGuruAllData = [];
+
 // Live fetch-based filtering: will call /api/absensi-guru-terbaru
 
 function renderTable(data) {
 	let tbody = '';
 	data.forEach((row, i) => {
 		tbody += `<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
-			<td class="px-4 py-2 border-orange-200 text-center">${i+1}</td>
-			<td class="px-4 py-2 border-orange-200">${row.guru_nama ?? '-'}</td>
-			<td class="px-4 py-2 border-orange-200 text-center">${row.tanggal ?? '-'}</td>
-			<td class="px-4 py-2 border-orange-200 text-center">${row.jam_masuk ?? '-'}</td>
-			<td class="px-4 py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
-			<td class="px-4 py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
-			<td class="px-4 py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
-			<td class="px-4 py-2 border-orange-200 text-center"><a href="/absensi_guru/${row.id}/edit" class="text-blue-600">Edit</a></td>
+			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${i+1}</td>
+			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200">${row.guru_nama ?? '-'}</td>
+			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.tanggal ?? '-'}</td>
+			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.jam_masuk ?? '-'}</td>
+			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
+			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
+			<td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
+			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center"><a href="/absensi_guru/${row.id}/edit" class="text-blue-600">Edit</a></td>
 		</tr>`;
 	});
 	document.getElementById('tbody-absensi').innerHTML = tbody;
@@ -194,11 +186,20 @@ function filterAbsensi() {
 	const fetchAllForDate = fetch(allUrl).then(r => r.json());
 
 	Promise.all([fetchFiltered, fetchAllForDate]).then(([filteredData, allData]) => {
+		// store latest data so card-detail panel can use it
+		window.latestGuruFilteredData = filteredData || [];
+		window.latestGuruAllData = allData || [];
+
 		// filteredData -> data to render in table
-		renderTable(filteredData);
+		renderTable(window.latestGuruFilteredData);
 
 		// compute counts based on filteredData (for status cards)
-		updateCards(filteredData, Math.max(0, initialGuruList.length - [...new Set(allData.map(d => d.guru_nama))].length));
+		updateCards(window.latestGuruFilteredData, Math.max(0, initialGuruList.length - [...new Set(window.latestGuruAllData.map(d => d.guru_nama))].length));
+
+		// if a card details panel is open, refresh its content
+		if (window.currentCardOpen) {
+			renderCardDetails(window.currentCardOpen);
+		}
 	}).catch(err => {
 		console.error('Failed to fetch absensi guru data', err);
 	});
@@ -208,6 +209,82 @@ document.getElementById('search').addEventListener('input', filterAbsensi);
 document.getElementById('tanggal').addEventListener('change', filterAbsensi);
 setInterval(filterAbsensi, 3000);
 window.addEventListener('DOMContentLoaded', filterAbsensi);
+
+// Card detail functionality (shared container below cards)
+function toggleCardDetails(status) {
+	const container = document.getElementById('card-details');
+	if (window.currentCardOpen === status) {
+		// close
+		container.classList.add('hidden');
+		window.currentCardOpen = null;
+		return;
+	}
+	window.currentCardOpen = status;
+	renderCardDetails(status);
+	container.classList.remove('hidden');
+	// scroll to details
+	container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderCardDetails(status) {
+	const container = document.getElementById('card-details');
+	const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
+
+	const filtered = window.latestGuruFilteredData || [];
+	const allData = window.latestGuruAllData || [];
+
+	const renderRows = (rows) => {
+		if (!rows.length) return `<tr><td colspan="2" class="px-4 py-2 text-center text-gray-500">Tidak ada data</td></tr>`;
+		return rows.map((r, i) => `
+			<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
+				<td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${i+1}</td>
+				<td class="px-2 sm:px-4 py-1 sm:py-2">${r.guru_nama ?? r.nama ?? '-'}</td>
+			</tr>
+		`).join('');
+	};
+
+	let title = '';
+	let rowsHtml = '';
+
+	if (status === 'belum') {
+		title = 'Daftar Belum Hadir';
+		const presentSet = new Set(allData.map(a => a.guru_nama));
+		const missing = initialGuruList
+			.filter(g => !presentSet.has(g.nama))
+			.map(g => ({ nama: g.nama }));
+		// adapt rows to table shape
+		const rows = missing.map(m => ({ guru_nama: m.nama }));
+		rowsHtml = renderRows(rows);
+	} else {
+		title = 'Daftar ' + status.charAt(0).toUpperCase() + status.slice(1);
+		const filteredRows = filtered
+			.filter(a => (a.status || '').toString().toLowerCase() === status)
+			.map(a => ({ guru_nama: a.guru_nama, tanggal: a.tanggal, jam_masuk: a.jam_masuk, jam_pulang: a.jam_pulang, status: a.status }));
+		rowsHtml = renderRows(filteredRows);
+	}
+
+	container.innerHTML = `
+		<div class="bg-white border rounded-lg shadow p-4">
+			<div class="flex items-center justify-between mb-3">
+				<h3 class="font-semibold text-lg">${title} — ${tanggal}</h3>
+				<button type="button" onclick="toggleCardDetails('${status}')" class="text-sm text-gray-600 hover:text-gray-800">Tutup</button>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="min-w-full border-2 border-orange-100 rounded-lg overflow-hidden shadow table-auto text-sm">
+					<thead>
+						<tr class="bg-orange-100 text-orange-800">
+							<th class="px-2 sm:px-4 py-1 sm:py-2 text-center">No</th>
+							<th class="px-2 sm:px-4 py-1 sm:py-2">Nama Guru</th>
+						</tr>
+					</thead>
+					<tbody>
+						${rowsHtml}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	`;
+}
 
 function exportAbsensiGuru(type) {
 	const periode = document.getElementById('periode_guru').value;

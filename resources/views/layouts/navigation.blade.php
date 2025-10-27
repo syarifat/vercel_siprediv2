@@ -1,4 +1,4 @@
-<div x-data="{ sidebar: true, profileOpen: false, whatsappOpen: false }" class="flex min-h-screen">
+<div x-data="{ sidebar: (localStorage.getItem('sidebar') === 'true') ? true : false, profileOpen: false, whatsappOpen: false }" class="flex min-h-screen">
     <!-- Sidebar -->
     <aside
         x-show="sidebar"
@@ -23,7 +23,7 @@
             $role = Auth::user()->role ?? '';
         @endphp
 
-        <nav class="flex-1 py-6 px-4 flex flex-col gap-2">
+    <nav class="flex-1 py-6 px-4 flex flex-col gap-2" @click="if($event.target.closest('a')) localStorage.setItem('sidebar', false)">
             {{-- Menu untuk superadmin dan admin (full access) --}}
             @if($role === 'superadmin' || $role === 'admin')
                 <a href="{{ route('dashboard') }}"
@@ -225,7 +225,7 @@
         <!-- Topbar -->
         <header class="flex items-center justify-between bg-white border-b border-gray-200 px-4 h-14">
             <!-- Sidebar Toggle Button -->
-            <button @click="sidebar = !sidebar" class="text-gray-700 hover:bg-gray-100 rounded p-2">
+            <button @click="sidebar = !sidebar; localStorage.setItem('sidebar', sidebar)" class="text-gray-700 hover:bg-gray-100 rounded p-2">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>

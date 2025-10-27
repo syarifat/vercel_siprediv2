@@ -27,6 +27,7 @@
 			<input type="text" name="keterangan" class="w-full border p-2" value="{{ $absensi->keterangan }}">
 		</div>
 		<div class="flex justify-end">
+			<a href="{{ route('absensi_guru.index') }}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded mr-2">Kembali</a>
 			<button class="px-4 py-2 bg-blue-600 text-white rounded">Update</button>
 		</div>
 	</form>

@@ -22,6 +22,7 @@
             @error('keterangan')<div class="text-red-500 text-sm">{{ $message }}</div>@enderror
         </div>
         <div class="flex justify-end mt-4">
+            <a href="{{ route('absensi.index') }}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded mr-2">Kembali</a>
             <button type="submit" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded font-bold shadow">Update</button>
         </div>
     </form>
