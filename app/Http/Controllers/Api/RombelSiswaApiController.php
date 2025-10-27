@@ -22,9 +22,24 @@ class RombelSiswaApiController extends Controller
             $query->where('kelas_id', $request->kelas_id);
         }
 
-        $data = $query->orderBy('id', 'desc')->get()->map(function($row) {
+        // Support filtering by tahun ajaran if provided
+        if ($request->tahun_ajaran_id) {
+            $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
+        }
+
+        // Prefer ordering by nomor_absen when available, otherwise by id desc
+        if (in_array('nomor_absen', $query->getModel()->getFillable())) {
+            $dataQuery = $query->orderBy('nomor_absen');
+        } else {
+            $dataQuery = $query->orderBy('id', 'desc');
+        }
+
+        $data = $dataQuery->get()->map(function($row) {
             return [
                 'id' => $row->id,
+                'siswa_id' => $row->siswa_id,
+                'kelas_id' => $row->kelas_id,
+                'tahun_ajaran_id' => $row->tahun_ajaran_id,
                 'nomor_absen' => $row->nomor_absen ?? '-',
                 'siswa_nama' => $row->siswa->nama ?? '-',
                 'siswa_nis' => $row->siswa->nis ?? '-',

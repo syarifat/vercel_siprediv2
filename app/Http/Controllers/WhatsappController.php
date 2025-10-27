@@ -27,10 +27,15 @@ class WhatsappController extends Controller
             'countryCode' => '62'
         ];
         $client = new \GuzzleHttp\Client();
-        $response = $client->post($url, [
-            'headers' => ['Authorization' => $token],
-            'form_params' => $data
-        ]);
+        try {
+            $response = $client->post($url, [
+                'headers' => ['Authorization' => $token],
+                'form_params' => $data
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Fonnte send exception: ' . $e->getMessage());
+            return ['success' => false, 'reason' => $e->getMessage()];
+        }
         $body = $response->getBody()->getContents();
         $res = json_decode($body, true);
 
@@ -56,31 +61,100 @@ class WhatsappController extends Controller
     {
         $request->validate([
             'pesan' => 'required',
-            'tipe' => 'required',
+            'tipe' => 'required|in:semua,kelas,individu',
+            'kelas_id' => 'nullable|exists:kelas,id',
+            'no_hp_ortu' => 'nullable|string',
         ]);
 
         $nomor = [];
         if ($request->tipe == 'semua') {
             $nomor = Siswa::pluck('no_hp_ortu')->toArray();
         } elseif ($request->tipe == 'kelas') {
+            if (!$request->kelas_id) {
+                return back()->with('error', 'Pilih kelas terlebih dahulu.');
+            }
             $siswaIds = RombelSiswa::where('kelas_id', $request->kelas_id)->pluck('siswa_id');
             $nomor = Siswa::whereIn('id', $siswaIds)->pluck('no_hp_ortu')->toArray();
         } elseif ($request->tipe == 'individu') {
+            if (!$request->no_hp_ortu) {
+                return back()->with('error', 'Pilih siswa terlebih dahulu.');
+            }
             $nomor[] = $request->no_hp_ortu;
         }
 
-        $gagal = 0;
+        // filter out empty numbers
+        $nomor = array_filter(array_map(function($n) {
+            return $n === null ? null : trim($n);
+        }, $nomor));
+
+        $failed = [];
         foreach ($nomor as $hp) {
-            $result = $this->sendFonnte($hp, $request->pesan);
-            if (!$result['success']) {
-                $gagal++;
+            $original = $hp;
+            // normalize phone number to target + country
+            $norm = $this->normalizePhone($hp);
+            if (!$norm) {
+                $failed[] = ['number' => $original, 'reason' => 'Format nomor tidak valid'];
+                continue;
+            }
+            $target = $norm['target'];
+            $country = $norm['country'];
+            try {
+                $result = $this->sendFonnte($target, $request->pesan);
+                if (!isset($result['success']) || !$result['success']) {
+                    $reason = $result['reason'] ?? 'Unknown error';
+                    $failed[] = ['number' => $original, 'reason' => $reason];
+                }
+            } catch (\Exception $e) {
+                \Log::error('Failed sending whatsapp to ' . $original . ': ' . $e->getMessage());
+                $failed[] = ['number' => $original, 'reason' => $e->getMessage()];
             }
         }
 
-        if ($gagal > 0) {
-            return back()->with('error', "Gagal kirim ke $gagal nomor. Device WhatsApp tidak connect.");
+        if (count($failed) > 0) {
+            // Log full failed list for debugging
+            \Log::warning('WhatsApp send failed list', ['failed' => $failed]);
+
+            // Build a readable message (limit to first 10 numbers to avoid huge flash)
+            $items = array_map(function($f) {
+                return ($f['number'] ?: '-') . ' (' . ($f['reason'] ?: '-') . ')';
+            }, array_slice($failed, 0, 10));
+            $msg = "Gagal kirim ke " . count($failed) . " nomor: " . implode(', ', $items);
+            if (count($failed) > 10) {
+                $msg .= " (dan " . (count($failed) - 10) . " lainnya)";
+            }
+            $msg .= ". Periksa koneksi device WhatsApp atau format nomor. Detail lengkap ada di log.";
+            return back()->with('error', $msg);
         }
+
         return back()->with('success', 'Pesan berhasil dikirim!');
+    }
+
+    /**
+     * Normalize phone number for Fonnte: return ['target' => number_without_country, 'country' => countryCode]
+     */
+    private function normalizePhone($hp)
+    {
+        if (!$hp) return null;
+        $s = preg_replace('/[^0-9+]/', '', $hp);
+        // remove leading + if present
+        if (substr($s, 0, 1) === '+') $s = substr($s, 1);
+
+        // if starts with 0 -> remove leading 0 and country 62
+        if (substr($s, 0, 1) === '0') {
+            $target = substr($s, 1);
+            return ['target' => $target, 'country' => '62'];
+        }
+        // if starts with 62
+        if (substr($s, 0, 2) === '62') {
+            $target = substr($s, 2);
+            return ['target' => $target, 'country' => '62'];
+        }
+        // if starts with 8 (local without leading 0)
+        if (substr($s, 0, 1) === '8') {
+            return ['target' => $s, 'country' => '62'];
+        }
+        // otherwise, return raw digits and empty country (let API infer)
+        return ['target' => $s, 'country' => ''];
     }
 
     public function qr()

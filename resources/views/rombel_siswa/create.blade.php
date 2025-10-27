@@ -25,7 +25,7 @@
                                 <input type="checkbox" name="siswa_id[]" value="{{ $row->id }}" class="siswa-check">
                             </td>
                             <td class="px-2 py-1 text-center">{{ $row->nis }}</td>
-                            <td class="px-2 py-1 text-left">{{ $row->nama }}</td>
+                            <td class="px-2 py-1 text-left">{{ $row->nama }} <span class="assigned-note text-sm text-gray-500 ml-2"></span></td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -43,10 +43,12 @@
         </div>
         <div>
             <label class="block mb-2">Tahun Ajaran</label>
-            <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaran->id }}">
-            <div class="border rounded px-2 py-1 w-full bg-gray-100 text-gray-700">
-                {{ $tahunAjaran->nama }}
-            </div>
+            <select name="tahun_ajaran_id" class="border rounded px-2 py-1 w-full" required>
+                <option value="">- Pilih Tahun Ajaran -</option>
+                @foreach(\App\Models\TahunAjaran::all() as $ta)
+                    <option value="{{ $ta->id }}" {{ old('tahun_ajaran_id') == $ta->id ? 'selected' : '' }}>{{ $ta->nama }}</option>
+                @endforeach
+            </select>
         </div>
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Masukkan ke Kelas</button>
     </form>
@@ -55,5 +57,38 @@
 function toggleAll(source) {
     document.querySelectorAll('.siswa-check').forEach(cb => cb.checked = source.checked);
 }
+</script>
+<script>
+// When tahun_ajaran is selected, fetch existing rombel for that year and mark students already assigned
+document.addEventListener('DOMContentLoaded', function() {
+    const tahunSelect = document.querySelector('select[name="tahun_ajaran_id"]');
+    if (!tahunSelect) return;
+
+    function refreshAssignedNotes() {
+        const tahunId = tahunSelect.value;
+        // clear notes and enable checkboxes by default
+        document.querySelectorAll('.siswa-check').forEach(cb => { cb.disabled = false; cb.checked = false; });
+        document.querySelectorAll('.assigned-note').forEach(span => span.textContent = '');
+        if (!tahunId) return;
+        fetch(`/api/rombel-siswa?tahun_ajaran_id=${encodeURIComponent(tahunId)}`)
+            .then(r => r.json())
+            .then(data => {
+                const assignedBySiswa = {};
+                data.forEach(r => { assignedBySiswa[r.siswa_id] = r; });
+                document.querySelectorAll('.siswa-check').forEach(cb => {
+                    const sid = parseInt(cb.value, 10);
+                    if (assignedBySiswa[sid]) {
+                        cb.disabled = true;
+                        const noteEl = cb.closest('tr').querySelector('.assigned-note');
+                        if (noteEl) noteEl.textContent = `Sudah: ${assignedBySiswa[sid].kelas_nama} (No ${assignedBySiswa[sid].nomor_absen})`;
+                    }
+                });
+            }).catch(err => console.error('Failed to fetch rombel for tahun', err));
+    }
+
+    tahunSelect.addEventListener('change', refreshAssignedNotes);
+    // initialize if a tahun is preselected
+    refreshAssignedNotes();
+});
 </script>
 @endsection

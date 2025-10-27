@@ -24,10 +24,12 @@
         </div>
         <div>
             <label class="block">Tahun Ajaran</label>
-            <input type="hidden" name="tahun_ajaran_id" value="{{ $rombel->tahun_ajaran_id }}">
-            <div class="border rounded px-2 py-1 w-full bg-gray-100 text-gray-700">
-                {{ $rombel->tahunAjaran->nama ?? '-' }}
-            </div>
+            <select name="tahun_ajaran_id" class="border rounded px-2 py-1 w-full" required>
+                <option value="">- Pilih Tahun Ajaran -</option>
+                @foreach($tahunAjaran as $ta)
+                    <option value="{{ $ta->id }}" @if($rombel->tahun_ajaran_id == $ta->id) selected @endif>{{ $ta->nama }}</option>
+                @endforeach
+            </select>
         </div>
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Update</button>
     </form>
