@@ -2,7 +2,7 @@
     <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-200 to-blue-300">
         <div class="bg-white rounded-xl shadow-lg w-full max-w-sm p-4">
             <div class="flex flex-col items-center mb-4">
-                <img src="{{ asset('logo.svg') }}" alt="Logo" class="h-10 mb-1">
+                <img src="{{ asset('logo.png') }}" alt="Logo" class="h-10 mb-1">
                 <span class="text-xl font-bold text-cyan-700 text-center leading-tight">
                     siPredi <span class="text-yellow-500">SMP ISLAM</span> TULUNGAGUNG
                 </span>

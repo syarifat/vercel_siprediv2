@@ -13,8 +13,8 @@
             </tr>
         </thead>
         <tbody>
-            @foreach($users as $i => $user)
-            <tr class="{{ $i % 2 == 0 ? 'bg-white' : 'bg-gray-100' }} border-b border-orange-200 hover:bg-orange-50">
+            @foreach($users as $user)
+            <tr class="{{ $loop->index % 2 == 0 ? 'bg-white' : 'bg-gray-100' }} border-b border-orange-200 hover:bg-orange-50">
                 <td class="px-4 py-2 text-left">{{ $user->username }}</td>
                 <td class="px-4 py-2 text-center">{{ ucfirst($user->role) }}</td>
                 <td class="px-4 py-2 text-center">

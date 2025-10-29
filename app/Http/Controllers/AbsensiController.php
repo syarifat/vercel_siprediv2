@@ -80,8 +80,17 @@ class AbsensiController extends Controller
             if (substr($wa, 0, 1) === '0') {
                 $wa = '62' . substr($wa, 1);
             }
-            $message = "Assalamualaikum, Orang Tua/Wali dari {$rombel->siswa->nama}.\n" .
-                "Ananda telah melakukan absensi pada tanggal {$request->tanggal} jam {$request->jam_masuk} dengan status: {$request->status}.";
+            $dayText = Carbon::parse($request->tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+            $namaSiswa = $rombel->siswa->nama ?? '-';
+            $kelasNama = $rombel->kelas->nama ?? '-';
+            $statusText = strtoupper($request->status);
+            $message = "Assalamu'alaikum Bapak/Ibu,\n" .
+                "Kami informasikan bahwa putra/putri Bapak/Ibu:\n" .
+                "Nama   : {$namaSiswa}\n" .
+                "Kelas  : {$kelasNama}\n" .
+                "\n" .
+                "Hari ini, {$dayText} pukul *{$request->jam_masuk}*, tercatat *{$statusText}* di sekolah.\n\n" .
+                "Terima kasih atas perhatian dan kerja samanya";
             $fonnte = new FonnteService();
             $fonnte->sendMessage($wa, $message);
         }

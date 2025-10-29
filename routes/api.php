@@ -3,11 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\ApiAbsensiController;
-use App\Http\Controllers\Api\ApiGuruAbsensiController;
 use App\Http\Controllers\Api\ApiSiswaController;
 use App\Http\Controllers\Api\RombelSiswaApiController;
 
-Route::post('/absensi-api', [ApiGuruAbsensiController::class, 'store']);
+Route::post('/absensi-api', [ApiAbsensiController::class, 'store']);
 Route::get('/siswa-api', [ApiSiswaController::class, 'index']);
 Route::get('/rombel-siswa', [RombelSiswaApiController::class, 'index']);
 Route::get('/absensi-terbaru', function(Request $request) {

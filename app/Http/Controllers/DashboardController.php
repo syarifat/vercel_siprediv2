@@ -13,26 +13,32 @@ class DashboardController extends Controller
     {
         $today = now('Asia/Jakarta')->toDateString();
 
-        $dataSiswaAktif = \App\Models\RombelSiswa::with(['siswa', 'kelas'])->get();
+        $dataSiswaAktif = \App\Models\RombelSiswa::with(['siswa', 'kelas'])
+            ->whereHas('tahunAjaran', function($q) { $q->where('aktif', true); })
+            ->get();
         $jumlahSiswa = $dataSiswaAktif->count();
 
-        $dataHadir = \App\Models\Absensi::with(['siswa.rombel.kelas', 'rombel.kelas'])
+        $dataHadir = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
             ->where('status', 'Hadir')
             ->whereDate('tanggal', $today)
+            ->whereHas('rombel.tahunAjaran', function($q) { $q->where('aktif', true); })
             ->get();
 
-        $dataSakitIzin = \App\Models\Absensi::with(['siswa.rombel.kelas', 'rombel.kelas'])
+        $dataSakitIzin = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
             ->whereIn('status', ['Sakit', 'Izin'])
             ->whereDate('tanggal', $today)
+            ->whereHas('rombel.tahunAjaran', function($q) { $q->where('aktif', true); })
             ->get();
 
-        $dataTanpaKeterangan = \App\Models\Absensi::with(['siswa.rombel.kelas', 'rombel.kelas'])
+        $dataTanpaKeterangan = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
             ->whereIn('status', ['Tanpa Keterangan', 'Alpha'])
             ->whereDate('tanggal', $today)
+            ->whereHas('rombel.tahunAjaran', function($q) { $q->where('aktif', true); })
             ->get();
 
         // Belum Hadir: ambil dari rombel_siswa yang tidak punya absensi hari ini
         $dataBelumHadir = \App\Models\RombelSiswa::with(['siswa', 'kelas'])
+            ->whereHas('tahunAjaran', function($q) { $q->where('aktif', true); })
             ->whereDoesntHave('absensi', function($q) use ($today) {
                 $q->whereDate('tanggal', $today);
             })->get();

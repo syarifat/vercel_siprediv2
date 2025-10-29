@@ -3,7 +3,7 @@
 @section('content')
 <div x-data="{ selected: null }" class="max-w-5xl mx-auto mt-10">
     <div class="bg-white shadow rounded-lg p-8 text-center mb-6">
-        <h2 class="text-2xl font-bold mb-2">Selamat Datang, {{ Auth::user()->name }}</h2>
+        <h2 class="text-2xl font-bold mb-2">Selamat Datang, {{ ucfirst(Auth::user()->role ?? '') }}</h2>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
         <!-- Total Siswa -->
@@ -93,7 +93,7 @@
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->rombel && $row->rombel->kelas ? $row->rombel->kelas->nama : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->jam }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? ($row->jam_masuk ? $row->jam_masuk : '-') }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -121,7 +121,7 @@
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->rombel && $row->siswa->rombel->kelas ? $row->siswa->rombel->kelas->nama : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->jam }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->keterangan ?? '-' }}</td>
                         </tr>
                         @endforeach
@@ -149,7 +149,7 @@
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->rombel && $row->siswa->rombel->kelas ? $row->siswa->rombel->kelas->nama : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->jam }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>

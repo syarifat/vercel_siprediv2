@@ -2,7 +2,7 @@
     <div class="bg-white rounded-xl shadow-lg w-full max-w-md p-8">
             <!-- Logo & Judul -->
             <div class="flex flex-col items-center mb-6">
-                <img src="{{ asset('logo.svg') }}" alt="Logo" class="h-12 mb-2">
+                <img src="{{ asset('logo.png') }}" alt="Logo" class="h-12 mb-2">
                 <span class="text-3xl font-bold text-cyan-700 text-center leading-tight">
                     <span class="text-yellow-500">SMPI AL-HIDAYAH</span> <br>SAMIR
 

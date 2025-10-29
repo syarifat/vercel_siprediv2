@@ -30,18 +30,37 @@ class KirimNotifikasiSiswaBelumAbsen extends Command
 
         $this->info('Mencari siswa yang belum absen pada ' . $tanggal . ' ...');
 
-        $siswaList = \App\Models\Siswa::with(['rombel.kelas'])->get();
+        // Temukan tahun ajaran aktif (aktif = 1). Jika tidak ada, gunakan yang terbaru.
+        $tahun = \App\Models\TahunAjaran::where('aktif', true)->first();
+        if (!$tahun) {
+            $tahun = \App\Models\TahunAjaran::orderBy('id', 'desc')->first();
+        }
+
+        $siswaList = \App\Models\Siswa::orderBy('nama')->get();
         $jumlah = 0;
         foreach ($siswaList as $siswa) {
-            $sudahAbsen = \App\Models\Absensi::where('siswa_id', $siswa->id)
+            // cari rombel siswa untuk tahun ajaran aktif
+            $rombel = \App\Models\RombelSiswa::where('siswa_id', $siswa->id)
+                ->when($tahun, function ($q) use ($tahun) {
+                    return $q->where('tahun_ajaran_id', $tahun->id);
+                })
+                ->first();
+
+            if (!$rombel) {
+                $this->line("[SKIP] {$siswa->nama} (id={$siswa->id}) - tidak ada rombel untuk tahun yang dipilih");
+                continue;
+            }
+
+            $sudahAbsen = \App\Models\Absensi::where('rombel_siswa_id', $rombel->id)
                 ->where('tanggal', $tanggal)
                 ->exists();
+
             if (!$sudahAbsen && $siswa->no_hp_ortu) {
                 $wa = $siswa->no_hp_ortu;
                 if (substr($wa, 0, 1) === '0') {
                     $wa = '62' . substr($wa, 1);
                 }
-                $kelas = ($siswa->rombel && $siswa->rombel->kelas) ? $siswa->rombel->kelas->nama : '-';
+                $kelas = ($rombel->kelas) ? $rombel->kelas->nama : '-';
                 $nama_sekolah = env('NAMA_SEKOLAH');
                 $hari = [
                     'Sunday' => 'Minggu',

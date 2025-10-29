@@ -86,30 +86,40 @@
     <div id="exportModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg shadow-lg p-6 w-96">
             <h3 class="text-lg font-bold mb-4">Export Rekap Absensi</h3>
+
             <!-- Dropdown Kelas (untuk export) -->
-            <div class="relative col-span-2 md:col-span-1">
-                <select id="kelas_id"
-                    class="border-2 border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Kelas</label>
+                <select id="kelas_export"
+                    class="border-2 border-gray-300 rounded-lg pl-3 pr-4 py-2 w-full
                            focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                           transition duration-200 shadow-sm bg-gray-50 text-gray-700 font-semibold appearance-none">
+                           transition duration-200 shadow-sm bg-white text-gray-700 font-semibold appearance-none">
                     <option value="">-- Pilih Kelas --</option>
                     @foreach(\App\Models\Kelas::all() as $kelas)
                         <option value="{{ $kelas->id }}">{{ $kelas->nama }}</option>
                     @endforeach
                 </select>
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-                    </svg>
-                </span>
             </div>
 
-            <div class="col-span-2 md:col-span-1">
-                <button type="button" class="w-full text-center bg-pink-400 hover:bg-pink-500 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200 focus:outline-none"
-                    onclick="document.getElementById('exportModal').classList.remove('hidden')">
-                    Export PDF
-                </button>
+            <!-- Periode (bulan) -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Periode (Bulan)</label>
+                <input type="month" id="periode" class="border-2 border-gray-300 rounded-lg pl-3 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-400">
             </div>
+
+            <!-- Tahun Ajaran -->
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tahun Ajaran</label>
+                <select id="tahun_ajaran" class="border-2 border-gray-300 rounded-lg pl-3 pr-4 py-2 w-full focus:outline-none focus:ring-2 focus:ring-orange-400">
+                    <option value="">-- (Semua / Default Aktif) --</option>
+                    @foreach(\App\Models\TahunAjaran::orderBy('nama','desc')->get() as $ta)
+                        <option value="{{ $ta->id }}" {{ $ta->aktif ? 'selected' : '' }}>{{ $ta->nama }} {{ $ta->aktif ? '(Aktif)' : '' }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex items-center justify-end gap-3">
+                <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
                     onclick="document.getElementById('exportModal').classList.add('hidden')">Batal</button>
                 <button type="button" class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
                     onclick="exportAbsensi()">Download PDF</button>
@@ -330,8 +340,12 @@ function exportAbsensi() {
         return;
     }
 
+    const tahunAjaranId = document.getElementById('tahun_ajaran').value;
+
     document.getElementById('exportModal').classList.add('hidden');
-    window.location.href = `/absensi/export/pdf?kelas_id=${kelasId}&periode=${periode}`;
+    let url = `/absensi/export/pdf?kelas_id=${kelasId}&periode=${periode}`;
+    if (tahunAjaranId) url += `&tahun_ajaran_id=${tahunAjaranId}`;
+    window.location.href = url;
 }
 </script>
 @endsection

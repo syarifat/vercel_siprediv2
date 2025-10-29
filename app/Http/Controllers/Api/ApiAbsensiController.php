@@ -4,205 +4,184 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Absensi;
 use App\Models\Siswa;
-use Illuminate\Support\Carbon;
+use App\Models\RombelSiswa;
+use App\Models\Absensi;
+use App\Services\FonnteService;
+use App\Models\Guru;
+use App\Models\AbsensiGuru;
+use Carbon\Carbon;
 
 class ApiAbsensiController extends Controller
 {
+    /**
+     * Endpoint untuk device: menerima rfid dan mode_id
+     * mode_id = 1 -> jam masuk
+     * mode_id = 2 -> jam pulang
+     * Prioritas: cari siswa (dan rombel) terlebih dahulu; jika tidak ada, cek guru.
+     */
     public function store(Request $request)
     {
+        $request->validate([
+            'rfid' => 'required|string',
+            'mode_id' => 'nullable|in:1,2',
+            'tanggal' => 'nullable|date',
+        ]);
+
         $rfid = $request->input('rfid');
-        $mode = $request->input('mode_id', 1); // default masuk
+        $mode = (int) ($request->input('mode_id', 1));
+        $tanggal = $request->input('tanggal') ? Carbon::parse($request->input('tanggal'))->toDateString() : Carbon::now()->toDateString();
+        $timeNow = Carbon::now()->toTimeString();
 
-        if (!$rfid) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'RFID wajib diisi',
-            ], 400);
-        }
-
-        // Cari siswa berdasarkan RFID
+        // ---------- Siswa flow ----------
         $siswa = Siswa::where('rfid', $rfid)->first();
-        if (!$siswa) {
-            return response()->json([
-                'status' => 'notfound',
-                'message' => 'RFID tidak terdaftar',
-            ], 404);
+        if ($siswa) {
+            // cari rombel siswa prioritaskan tahun ajaran aktif
+            $rombel = RombelSiswa::where('siswa_id', $siswa->id)
+                ->whereHas('tahunAjaran', function ($q) { $q->where('aktif', true); })
+                ->first();
+            if (! $rombel) {
+                // fallback ke rombel terbaru
+                $rombel = RombelSiswa::where('siswa_id', $siswa->id)
+                    ->orderByDesc('tahun_ajaran_id')
+                    ->first();
+            }
+
+            if (! $rombel) {
+                return response()->json(['status' => 'error', 'message' => 'Rombel siswa tidak ditemukan'], 422);
+            }
+
+            $abs = Absensi::whereDate('tanggal', $tanggal)
+                ->where('rombel_siswa_id', $rombel->id)
+                ->first();
+
+            // mode 1 -> jam masuk
+            if ($mode === 1) {
+                if ($abs && $abs->jam_masuk) {
+                    return response()->json(['status' => 'error', 'message' => 'Sudah absen masuk', 'type' => 'siswa', 'action' => 'unchanged', 'data' => $abs], 200);
+                }
+
+                if (! $abs) {
+                    $abs = Absensi::create([
+                        'rombel_siswa_id' => $rombel->id,
+                        'tanggal' => $tanggal,
+                        'jam_masuk' => $timeNow,
+                        'status' => 'hadir',
+                    ]);
+
+                    // Kirim WA ke orang tua saat pertama kali absen masuk
+                    try {
+                        if ($rombel->siswa && $rombel->siswa->no_hp_ortu) {
+                            $wa = $rombel->siswa->no_hp_ortu;
+                            if (substr($wa, 0, 1) === '0') {
+                                $wa = '62' . substr($wa, 1);
+                            }
+                            $dayText = Carbon::parse($tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+                            $kelasNama = $rombel->kelas->nama ?? '-';
+                            $namaSiswa = $rombel->siswa->nama ?? '-';
+                            $statusText = strtoupper('hadir');
+                            $message = "Assalamu'alaikum Bapak/Ibu,\n" .
+                                "Kami informasikan bahwa putra/putri Bapak/Ibu:\n" .
+                                "Nama   : {$namaSiswa}\n" .
+                                "Kelas  : {$kelasNama}\n" .
+                                "\n" .
+                                "Hari ini, {$dayText} pukul *{$timeNow}*, tercatat *{$statusText}* di sekolah.\n\n" .
+                                "Terima kasih atas perhatian dan kerja samanya";
+                            $fonnte = new FonnteService();
+                            $res = $fonnte->sendMessage($wa, $message);
+                            \Log::info('Fonnte send response (api absensi):', (array) $res);
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error('Failed sending whatsapp (api absensi): ' . $e->getMessage());
+                    }
+
+                    return response()->json(['status' => 'ok', 'type' => 'siswa', 'action' => 'created', 'data' => $abs], 201);
+                }
+
+                // abs exists but jam_masuk null
+                $abs->jam_masuk = $timeNow;
+                $abs->save();
+
+                // Kirim WA juga saat memperbarui jam_masuk yang sebelumnya kosong
+                try {
+                    if ($rombel->siswa && $rombel->siswa->no_hp_ortu) {
+                        $wa = $rombel->siswa->no_hp_ortu;
+                        if (substr($wa, 0, 1) === '0') {
+                            $wa = '62' . substr($wa, 1);
+                        }
+                        $dayText = Carbon::parse($tanggal)->locale('id')->isoFormat('dddd, D MMMM YYYY');
+                        $kelasNama = $rombel->kelas->nama ?? '-';
+                        $namaSiswa = $rombel->siswa->nama ?? '-';
+                        $statusText = strtoupper('hadir');
+                        $message = "Assalamu'alaikum Bapak/Ibu,\n" .
+                            "Kami informasikan bahwa putra/putri Bapak/Ibu:\n" .
+                            "Nama   : {$namaSiswa}\n" .
+                            "Kelas  : {$kelasNama}\n" .
+                            "Hari ini, {$dayText} pukul {$timeNow}, tercatat {$statusText} di sekolah.\n\n" .
+                            "Terima kasih atas perhatian dan kerja samanya";
+                        $fonnte = new FonnteService();
+                        $res = $fonnte->sendMessage($wa, $message);
+                        \Log::info('Fonnte send response (api absensi update jam_masuk):', (array) $res);
+                    }
+                } catch (\Exception $e) {
+                    \Log::error('Failed sending whatsapp (api absensi update): ' . $e->getMessage());
+                }
+
+                return response()->json(['status' => 'ok', 'type' => 'siswa', 'action' => 'updated', 'data' => $abs], 200);
+            }
+
+            // mode 2 -> jam pulang
+            if ($mode === 2) {
+                if (! $abs || ! $abs->jam_masuk) {
+                    return response()->json(['status' => 'error', 'message' => 'Belum absen masuk', 'type' => 'siswa'], 400);
+                }
+                if ($abs->jam_pulang) {
+                    return response()->json(['status' => 'error', 'message' => 'Sudah absen pulang', 'type' => 'siswa', 'action' => 'unchanged', 'data' => $abs], 200);
+                }
+                $abs->jam_pulang = $timeNow;
+                $abs->save();
+                return response()->json(['status' => 'ok', 'type' => 'siswa', 'action' => 'updated', 'data' => $abs], 200);
+            }
         }
 
-    date_default_timezone_set('Asia/Jakarta');
-    $tanggal = date('Y-m-d');
-    $jam = date('H:i:s');
+        // ---------- Guru flow (jika bukan siswa) ----------
+        $guru = Guru::where('rfid', $rfid)->first();
+        if ($guru) {
+            $absG = AbsensiGuru::whereDate('tanggal', $tanggal)
+                ->where('guru_id', $guru->id)
+                ->first();
 
-        $absensi = Absensi::where('siswa_id', $siswa->id)
-            ->where('tanggal', $tanggal)
-            ->first();
-
-        if ($mode == 1) {
-            // Absen masuk
-            if ($absensi) {
-                return response()->json([
-                    'status' => 'sudah',
-                    'nama' => $siswa->nama,
-                    'jam_tap' => $absensi->jam,
-                ]);
-            }
-            $absensi = Absensi::create([
-                'siswa_id' => $siswa->id,
-                'tanggal' => $tanggal,
-                'jam' => $jam,
-                'status' => 'hadir',
-                'keterangan' => null,
-                'user_id' => null,
-            ]);
-
-            // Kirim WhatsApp ke orang tua dengan format khusus
-            if ($siswa->no_hp_ortu) {
-                $wa = $siswa->no_hp_ortu;
-                if (substr($wa, 0, 1) === '0') {
-                    $wa = '62' . substr($wa, 1);
+            if ($mode === 1) {
+                if ($absG && $absG->jam_masuk) {
+                    return response()->json(['status' => 'error', 'message' => 'Sudah absen masuk', 'type' => 'guru', 'action' => 'unchanged', 'data' => $absG], 200);
                 }
-                // Ambil nama kelas
-                $kelas = '-';
-                if ($siswa->rombel && $siswa->rombel->kelas) {
-                    $kelas = $siswa->rombel->kelas->nama;
+                if (! $absG) {
+                    $absG = AbsensiGuru::create([
+                        'guru_id' => $guru->id,
+                        'tanggal' => $tanggal,
+                        'jam_masuk' => $timeNow,
+                        'status' => 'hadir',
+                    ]);
+                    return response()->json(['status' => 'ok', 'type' => 'guru', 'action' => 'created', 'data' => $absG], 201);
                 }
-                // Nama sekolah (bisa diganti sesuai kebutuhan)
-                $nama_sekolah = env('NAMA_SEKOLAH');
-                // Nama hari
-                $hari = [
-                    'Sunday' => 'Minggu',
-                    'Monday' => 'Senin',
-                    'Tuesday' => 'Selasa',
-                    'Wednesday' => 'Rabu',
-                    'Thursday' => 'Kamis',
-                    'Friday' => 'Jumat',
-                    'Saturday' => 'Sabtu',
-                ];
-                $carbon = \Carbon\Carbon::parse($tanggal);
-                $nama_hari = $hari[$carbon->format('l')] ?? $carbon->format('l');
-                $tanggal_indo = $carbon->translatedFormat('d F Y');
-                    $message = "Assalamu’alaikum Bapak/Ibu,\n" .
-                        "Kami informasikan bahwa putra/putri Bapak/Ibu:\n" .
-                        "Nama   : {$siswa->nama}\n" .
-                        "Kelas  : {$kelas}\n\n" .
-                        "Hari ini, {$nama_hari}, {$tanggal_indo} pukul {$jam}, tercatat sudah *HADIR* di sekolah.\n" .
-                        "Terima kasih atas perhatian dan kerja samanya. 🙏\n" .
-                        "- {$nama_sekolah}";
-                $fonnte = new \App\Services\FonnteService();
-                $fonnte->sendMessage($wa, $message);
+                $absG->jam_masuk = $timeNow;
+                $absG->save();
+                return response()->json(['status' => 'ok', 'type' => 'guru', 'action' => 'updated', 'data' => $absG], 200);
             }
 
-            return response()->json([
-                'status' => 'ok',
-                'nama' => $siswa->nama,
-                'jam_tap' => $jam,
-            ]);
-        } elseif ($mode == 2) {
-            // Absen pulang
-            if (intval(date('H')) < 12) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Absen pulang hanya bisa setelah jam 12',
-                ], 403);
-            }
-            if (!$absensi) {
-                return response()->json([
-                    'status' => 'error',
-                    'message' => 'Belum absen masuk',
-                ], 400);
-            }
-            if ($absensi->jam_pulang) {
-                return response()->json([
-                    'status' => 'sudah',
-                    'nama' => $siswa->nama,
-                    'jam_tap' => $absensi->jam_pulang,
-                ]);
-            }
-            // Hanya update jam_pulang, tidak mengubah status
-            $absensi->jam_pulang = $jam;
-            $absensi->save();
-
-            // Kirim WhatsApp ke orang tua saat pulang
-            if ($siswa->no_hp_ortu) {
-                $wa = $siswa->no_hp_ortu;
-                if (substr($wa, 0, 1) === '0') {
-                    $wa = '62' . substr($wa, 1);
+            if ($mode === 2) {
+                if (! $absG || ! $absG->jam_masuk) {
+                    return response()->json(['status' => 'error', 'message' => 'Belum absen masuk', 'type' => 'guru'], 400);
                 }
-                $kelas = '-';
-                if ($siswa->rombel && $siswa->rombel->kelas) {
-                    $kelas = $siswa->rombel->kelas->nama;
+                if ($absG->jam_pulang) {
+                    return response()->json(['status' => 'error', 'message' => 'Sudah absen pulang', 'type' => 'guru', 'action' => 'unchanged', 'data' => $absG], 200);
                 }
-                $nama_sekolah = env('NAMA_SEKOLAH');
-                $hari = [
-                    'Sunday' => 'Minggu',
-                    'Monday' => 'Senin',
-                    'Tuesday' => 'Selasa',
-                    'Wednesday' => 'Rabu',
-                    'Thursday' => 'Kamis',
-                    'Friday' => 'Jumat',
-                    'Saturday' => 'Sabtu',
-                ];
-                $carbon = \Carbon\Carbon::parse($tanggal);
-                $nama_hari = $hari[$carbon->format('l')] ?? $carbon->format('l');
-                $tanggal_indo = $carbon->translatedFormat('d F Y');
-                $message = "Assalamu’alaikum Bapak/Ibu,\n" .
-                    "Kami informasikan bahwa putra/putri Bapak/Ibu:\n" .
-                    "Nama   : {$siswa->nama}\n" .
-                    "Kelas  : {$kelas}\n\n" .
-                    "Hari ini, {$nama_hari}, {$tanggal_indo} pukul {$jam}, tercatat sudah *PULANG* dari sekolah.\n" .
-                    "Terima kasih atas perhatian dan kerja samanya. 🙏\n" .
-                    "- {$nama_sekolah}";
-                $fonnte = new \App\Services\FonnteService();
-                $fonnte->sendMessage($wa, $message);
+                $absG->jam_pulang = $timeNow;
+                $absG->save();
+                return response()->json(['status' => 'ok', 'type' => 'guru', 'action' => 'updated', 'data' => $absG], 200);
             }
-
-            return response()->json([
-                'status' => 'ok',
-                'nama' => $siswa->nama,
-                'jam_tap' => $jam,
-            ]);
         }
 
-        return response()->json([
-            'status' => 'error',
-            'message' => 'Mode tidak dikenali',
-        ], 400);
-    }
-
-    public function index(Request $request)
-    {
-        $absensi = Absensi::with(['siswa.rombel.kelas'])
-            ->when($request->search, function($q) use ($request) {
-                $q->whereHas('siswa', function($qq) use ($request) {
-                    $qq->where('nama', 'like', '%' . $request->search . '%')
-                       ->orWhere('nis', 'like', '%' . $request->search . '%');
-                });
-            })
-            ->when($request->tanggal, function($q) use ($request) {
-                $q->whereDate('tanggal', $request->tanggal);
-            })
-            ->when($request->kelas_id, function($q) use ($request) {
-                $q->whereHas('siswa.rombel', function($qq) use ($request) {
-                    $qq->where('kelas_id', $request->kelas_id);
-                });
-            })
-            ->orderBy('tanggal', 'desc')
-            ->get();
-
-        return response()->json($absensi->map(function($row) {
-            return [
-                'id' => $row->id,
-                'siswa_nama' => $row->siswa ? $row->siswa->nama : '-',
-                'siswa_nis' => $row->siswa ? $row->siswa->nis : '-',
-                'kelas_nama' => ($row->siswa && $row->siswa->rombel && $row->siswa->rombel->kelas) ? $row->siswa->rombel->kelas->nama : '-',
-                'tanggal' => $row->tanggal,
-                'jam' => $row->jam,
-                'jam_pulang' => $row->jam_pulang, // <--- tambahkan ini
-                'status' => $row->status,
-                'keterangan' => $row->keterangan,
-            ];
-        }));
+        return response()->json(['status' => 'error', 'message' => 'RFID tidak terdaftar di siswa maupun guru'], 404);
     }
 }

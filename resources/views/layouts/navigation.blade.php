@@ -1,3 +1,5 @@
+kalau begini bagaimana, dipaling atas menu ada pilihan untuk memilih tahun_ajaran yang mana. nantinya dari ini semua proses seperti rombel, export laporan sudah otomatis dari filter di navbarnya itu. jadi lebih terpusat
+
 <div x-data="{ sidebar: (localStorage.getItem('sidebar') === 'true') ? true : false, profileOpen: false, whatsappOpen: false }" class="flex min-h-screen">
     <!-- Sidebar -->
     <aside
@@ -14,18 +16,22 @@
         <!-- Logo & Judul -->
         <div class="flex items-center gap-2 px-6 py-4 border-b border-gray-100">
             <a href="{{ route('dashboard') }}">
-                <img src="{{ asset('logo.svg') }}" alt="Logo" class="h-10 w-10">
+                <img src="{{ asset('logo.png') }}" alt="Logo" class="h-10 w-10">
             </a>
-            <span class="font-bold text-lg text-gray-700">Absensi SMP</span>
+            <span class="font-bold text-lg text-gray-700">siPredi</span>
         </div>
         <!-- Navigation Links -->
         @php
             $role = Auth::user()->role ?? '';
+            // Treat legacy 'superadmin' as 'admin' in UI logic
+            if ($role === 'superadmin') {
+                $role = 'admin';
+            }
         @endphp
 
     <nav class="flex-1 py-6 px-4 flex flex-col gap-2" @click="if($event.target.closest('a')) localStorage.setItem('sidebar', false)">
-            {{-- Menu untuk superadmin dan admin (full access) --}}
-            @if($role === 'superadmin' || $role === 'admin')
+            {{-- Menu untuk admin (full access) --}}
+            @if($role === 'admin')
                 <a href="{{ route('dashboard') }}"
                    class="flex items-center gap-2 text-gray-700 hover:text-orange-500 hover:bg-orange-100/60 font-medium px-3 py-2 rounded transition group">
                     <!-- Dashboard Icon -->
@@ -211,19 +217,20 @@
         <!-- Profile Section -->
         <!-- <div class="px-6 py-4 border-t border-gray-100 flex items-center gap-2">
             <span class="bg-orange-500 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold">
-                {{ strtoupper(substr(Auth::user()->name,0,1)) }}
+                {{ strtoupper(substr(Auth::user()->role ?? '',0,1)) }}
             </span>
             <div>
-                <div class="text-gray-700 font-medium">{{ Auth::user()->name }}</div>
+                <div class="text-gray-700 font-medium">{{ ucfirst(Auth::user()->role ?? '') }}</div>
                 <div class="text-xs text-gray-400">{{ Auth::user()->email }}</div>
             </div>
         </div> -->
     </aside>
     <!-- Main Content -->
     <div :class="sidebar ? 'ml-64' : 'ml-0'"
-         class="flex-1 flex flex-col transition-all duration-300 ease-in-out">
-        <!-- Topbar -->
-        <header class="flex items-center justify-between bg-white border-b border-gray-200 px-4 h-14">
+         class="flex-1 flex flex-col transition-all duration-300 ease-in-out pt-14">
+    <!-- Topbar (fixed to viewport) -->
+    <header :style="sidebar ? 'left:16rem; right:0; width:calc(100% - 16rem);' : 'left:0; right:0; width:100%;'"
+        class="fixed top-0 z-20 flex items-center justify-between bg-white border-b border-gray-200 px-4 h-14">
             <!-- Sidebar Toggle Button -->
             <button @click="sidebar = !sidebar; localStorage.setItem('sidebar', sidebar)" class="text-gray-700 hover:bg-gray-100 rounded p-2">
                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,9 +241,9 @@
             <div class="relative">
                 <button @click="profileOpen = !profileOpen" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition">
                     <span class="bg-orange-500 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold">
-                        {{ strtoupper(substr(Auth::user()->name,0,1)) }}
+                        {{ strtoupper(substr(Auth::user()->role ?? '',0,1)) }}
                     </span>
-                    <span class="text-gray-700 font-medium">{{ Auth::user()->name }}</span>
+                    <span class="text-gray-700 font-medium">{{ ucfirst(Auth::user()->role ?? '') }}</span>
                     <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 20 20">
                         <path d="M5.5 8l4.5 4.5L14.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
@@ -249,7 +256,7 @@
                      x-transition:leave-end="opacity-0 scale-95"
                      @click.away="profileOpen = false"
                      class="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg z-50">
-                    <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                    <!-- <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a> -->
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
                         <button type="submit" class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100">Log Out</button>

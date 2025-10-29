@@ -46,7 +46,7 @@ require __DIR__.'/auth.php';
 Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
 Route::get('/whatsapp', [\App\Http\Controllers\WhatsappController::class, 'index'])->name('whatsapp.index')->middleware('auth');
 Route::post('/whatsapp/send', [\App\Http\Controllers\WhatsappController::class, 'send'])->name('whatsapp.send')->middleware('auth');
-Route::get('/absensi/export/{type}', [\App\Http\Controllers\AbsensiController::class, 'export'])->name('absensi.export');
+// Route for exporting absensi (keperluan umum). Use RekapAbsensiController for class/month rekap exports below.
 Route::get('/absensi_guru/export/{type}', [\App\Http\Controllers\AbsensiGuruController::class, 'export'])->name('absensi_guru.export');
 Route::get('/whatsapp/status', [\App\Http\Controllers\WhatsappController::class, 'status'])->name('whatsapp.status');
 Route::get('/whatsapp/qr', [\App\Http\Controllers\WhatsappController::class, 'qr'])->name('whatsapp.qr');

@@ -11,6 +11,12 @@ class UserController extends Controller
     public function index()
     {
         $users = User::orderBy('username')->get();
+        // Normalize any legacy 'superadmin' role to 'admin' for display/logic
+        $users->each(function($u) {
+            if ($u->role === 'superadmin') {
+                $u->role = 'admin';
+            }
+        });
         return view('user.index', compact('users'));
     }
 
@@ -24,7 +30,7 @@ class UserController extends Controller
         $request->validate([
             'username' => 'required|string|max:100|unique:users,username',
             'password' => 'required|string|min:6|confirmed',
-            'role' => 'required|in:superadmin,admin,guru',
+            'role' => 'required|in:admin,guru',
         ]);
 
         User::create([
@@ -39,6 +45,10 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
+        // normalize legacy role value so edit form shows 'admin' instead of 'superadmin'
+        if ($user->role === 'superadmin') {
+            $user->role = 'admin';
+        }
         return view('user.edit', compact('user'));
     }
 
@@ -49,7 +59,7 @@ class UserController extends Controller
         $request->validate([
             'username' => 'required|string|max:100|unique:users,username,' . $user->id,
             'password' => 'nullable|string|min:6|confirmed',
-            'role' => 'required|in:superadmin,admin,guru',
+            'role' => 'required|in:admin,guru',
         ]);
 
         $data = [

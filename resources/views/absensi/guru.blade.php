@@ -76,6 +76,17 @@
 						   focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400
 						   transition duration-200 shadow-sm text-gray-700">
 			</div>
+
+			<!-- Tahun Ajaran (optional) -->
+			<div class="mb-4">
+				<label for="tahun_ajaran_guru" class="block text-sm font-semibold text-gray-600 mb-1">Tahun Ajaran</label>
+				<select id="tahun_ajaran_guru" class="border-2 border-gray-300 rounded-lg px-3 py-2 w-full">
+					<option value="">-- (Semua / Default Aktif) --</option>
+					@foreach(\App\Models\TahunAjaran::orderBy('nama','desc')->get() as $ta)
+						<option value="{{ $ta->id }}" {{ $ta->aktif ? 'selected' : '' }}>{{ $ta->nama }} {{ $ta->aktif ? '(Aktif)' : '' }}</option>
+						@endforeach
+				</select>
+			</div>
 			<!-- Tombol Aksi -->
 			<div class="flex justify-end gap-2">
 				<button type="button" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
@@ -293,7 +304,10 @@ function exportAbsensiGuru(type) {
 		return;
 	}
 	document.getElementById('exportModal').classList.add('hidden');
-	window.location.href = `/absensi_guru/export/${type}?periode=${periode}`;
+	const tahunAjaranId = document.getElementById('tahun_ajaran_guru') ? document.getElementById('tahun_ajaran_guru').value : '';
+	let url = `/absensi_guru/export/${type}?periode=${periode}`;
+	if (tahunAjaranId) url += `&tahun_ajaran_id=${encodeURIComponent(tahunAjaranId)}`;
+	window.location.href = url;
 }
 </script>
 @endsection

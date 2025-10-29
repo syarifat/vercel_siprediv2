@@ -26,7 +26,6 @@
         <div class="mb-4">
             <label class="block mb-1 font-semibold">Role</label>
             <select name="role" class="w-full border rounded px-3 py-2" required>
-                <option value="superadmin" {{ old('role', $user->role) == 'superadmin' ? 'selected' : '' }}>Superadmin</option>
                 <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Admin</option>
                 <option value="guru" {{ old('role', $user->role) == 'guru' ? 'selected' : '' }}>Guru</option>
             </select>
