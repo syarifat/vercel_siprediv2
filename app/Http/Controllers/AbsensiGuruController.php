@@ -13,7 +13,14 @@ class AbsensiGuruController extends Controller
 {
 	public function index(Request $request)
 	{
-		$absensi = AbsensiGuru::with('guru')->orderBy('tanggal','desc')->get();
+		$tahunAjaranId = session('tahun_ajaran_id');
+		$query = AbsensiGuru::with('guru')->orderBy('tanggal','desc');
+		
+		if ($tahunAjaranId) {
+			$query->where('tahun_ajaran_id', $tahunAjaranId);
+		}
+		
+		$absensi = $query->get();
 		return view('absensi.guru', compact('absensi'));
 	}
 
@@ -32,8 +39,15 @@ class AbsensiGuruController extends Controller
 			'jam_pulang' => 'nullable',
 			'status' => 'required|in:hadir,izin,sakit,alpha',
 			'keterangan' => 'nullable',
+			'tahun_ajaran_id' => 'nullable|exists:tahun_ajaran,id',
 		]);
 
+		// Get tahun_ajaran_id from request, session, or get active tahun ajaran
+		$tahunAjaranId = $request->tahun_ajaran_id ?? session('tahun_ajaran_id');
+		if (!$tahunAjaranId) {
+			$tahunAjaranId = \App\Models\TahunAjaran::where('aktif', true)->first()?->id;
+		}
+		
 		AbsensiGuru::create([
 			'guru_id' => $request->guru_id,
 			'tanggal' => $request->tanggal,
@@ -41,6 +55,7 @@ class AbsensiGuruController extends Controller
 			'jam_pulang' => $request->jam_pulang,
 			'status' => $request->status,
 			'keterangan' => $request->keterangan,
+			'tahun_ajaran_id' => $tahunAjaranId,
 		]);
 
 	return redirect()->route('absensi_guru.index')->with('success','Absensi guru berhasil disimpan.');
@@ -64,9 +79,15 @@ class AbsensiGuruController extends Controller
 			'tanggal' => 'required|date',
 			'status' => 'required|in:hadir,izin,sakit,alpha',
 			'keterangan' => 'nullable',
+			'tahun_ajaran_id' => 'nullable|exists:tahun_ajaran,id',
 		]);
 
-		$absensiGuru->update($request->only(['guru_id','tanggal','jam_masuk','jam_pulang','status','keterangan']));
+		// Preserve tahun_ajaran_id if provided, otherwise keep existing
+		$data = $request->only(['guru_id','tanggal','jam_masuk','jam_pulang','status','keterangan']);
+		if ($request->has('tahun_ajaran_id')) {
+			$data['tahun_ajaran_id'] = $request->tahun_ajaran_id;
+		}
+		$absensiGuru->update($data);
 	return redirect()->route('absensi_guru.index')->with('success','Absensi guru berhasil diupdate.');
 	}
 
@@ -82,6 +103,12 @@ class AbsensiGuruController extends Controller
 	public function export(Request $request, $type)
 	{
 		$query = AbsensiGuru::with('guru')->orderBy('tanggal','desc');
+
+		// Filter by tahun ajaran from request or session
+		$tahunAjaranId = $request->tahun_ajaran_id ?? session('tahun_ajaran_id');
+		if ($tahunAjaranId) {
+			$query->where('tahun_ajaran_id', $tahunAjaranId);
+		}
 
 		if ($request->filled('tanggal')) {
 			$query->where('tanggal', $request->tanggal);

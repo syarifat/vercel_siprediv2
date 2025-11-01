@@ -12,6 +12,7 @@
 		<input type="hidden" name="tanggal" value="{{ $absensi->tanggal }}">
 		<input type="hidden" name="jam_masuk" value="{{ $absensi->jam_masuk }}">
 		<input type="hidden" name="jam_pulang" value="{{ $absensi->jam_pulang }}">
+		<input type="hidden" name="tahun_ajaran_id" value="{{ $absensi->tahun_ajaran_id }}">
 
 		<div class="mb-4">
 			<label class="block">Status</label>

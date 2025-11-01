@@ -16,7 +16,9 @@
 <body>
     <h3 style="text-align:center;">Rekap Absensi Guru</h3>
     <p>
-        Periode : {{ $periode }}
+        Tahun Ajaran : {{ $tahun }} <br>
+        Semester     : {{ $semester }} <br>
+        Periode      : {{ $periode }}
     </p>
 
     @if(empty($rekap))

@@ -30,7 +30,7 @@
                 <td>{{ $row->nomor_absen ?? '-' }}</td>
                 <td style="text-align:left;">{{ $row->siswa->nama ?? '-' }}</td>
                 <td>{{ $row->siswa->nis ?? '-' }}</td>
-                <td>{{ $row->tahunAjaran->nama ?? '-' }}</td>
+                <td>{{ $row->tahunAjaran ? ($row->tahunAjaran->nama . ' - ' . $row->tahunAjaran->semester) : '-' }}</td>
             </tr>
             @endforeach
         </tbody>

@@ -3,10 +3,23 @@
 @section('content')
 <div class="max-w-lg mx-auto mt-8">
     <h2 class="text-xl font-bold mb-4">Tambah Rombel Siswa</h2>
+    
+    <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-4">
+        <p class="font-bold">Tahun Ajaran: {{ $tahunAjaran ? ($tahunAjaran->nama . ' - ' . $tahunAjaran->semester) : 'Belum dipilih' }}</p>
+        <p class="text-sm mt-1">Hanya menampilkan siswa yang belum memiliki kelas di tahun ajaran ini</p>
+    </div>
+
+    @if($siswa->isEmpty())
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+            <p class="font-bold">Tidak ada siswa yang tersedia</p>
+            <p class="text-sm mt-1">Semua siswa sudah memiliki kelas di tahun ajaran ini.</p>
+            <a href="{{ route('rombel_siswa.index') }}" class="text-blue-600 hover:text-blue-800 mt-2 inline-block">← Kembali ke daftar rombel</a>
+        </div>
+    @else
     <form method="POST" action="{{ route('rombel_siswa.mass_store') }}" class="space-y-4">
         @csrf
         <div>
-            <label class="block mb-2">Pilih Siswa</label>
+            <label class="block mb-2">Pilih Siswa ({{ $siswa->count() }} siswa tersedia)</label>
             <div class="border rounded px-2 py-1 bg-white overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
@@ -41,17 +54,13 @@
                 @endforeach
             </select>
         </div>
-        <div>
-            <label class="block mb-2">Tahun Ajaran</label>
-            <select name="tahun_ajaran_id" class="border rounded px-2 py-1 w-full" required>
-                <option value="">- Pilih Tahun Ajaran -</option>
-                @foreach(\App\Models\TahunAjaran::all() as $ta)
-                    <option value="{{ $ta->id }}" {{ old('tahun_ajaran_id') == $ta->id ? 'selected' : '' }}>{{ $ta->nama }}</option>
-                @endforeach
-            </select>
+        <input type="hidden" name="tahun_ajaran_id" value="{{ $tahunAjaran->id }}">
+        <div class="flex justify-between items-center">
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Masukkan ke Kelas</button>
+            <a href="{{ route('rombel_siswa.index') }}" class="text-gray-600 hover:text-gray-800">← Kembali ke daftar</a>
         </div>
-        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Masukkan ke Kelas</button>
     </form>
+    @endif
 </div>
 <script>
 function toggleAll(source) {
@@ -61,15 +70,14 @@ function toggleAll(source) {
 <script>
 // When tahun_ajaran is selected, fetch existing rombel for that year and mark students already assigned
 document.addEventListener('DOMContentLoaded', function() {
-    const tahunSelect = document.querySelector('select[name="tahun_ajaran_id"]');
-    if (!tahunSelect) return;
-
     function refreshAssignedNotes() {
-        const tahunId = tahunSelect.value;
+        const tahunId = '{{ session('tahun_ajaran_id') }}';
         // clear notes and enable checkboxes by default
         document.querySelectorAll('.siswa-check').forEach(cb => { cb.disabled = false; cb.checked = false; });
         document.querySelectorAll('.assigned-note').forEach(span => span.textContent = '');
-        if (!tahunId) return;
+        if (!tahunId) {
+            alert('Pilih tahun ajaran di navigation bar terlebih dahulu');
+            return;
         fetch(`/api/rombel-siswa?tahun_ajaran_id=${encodeURIComponent(tahunId)}`)
             .then(r => r.json())
             .then(data => {
@@ -86,8 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }).catch(err => console.error('Failed to fetch rombel for tahun', err));
     }
 
-    tahunSelect.addEventListener('change', refreshAssignedNotes);
-    // initialize if a tahun is preselected
+    // Check assigned students when page loads
     refreshAssignedNotes();
 });
 </script>

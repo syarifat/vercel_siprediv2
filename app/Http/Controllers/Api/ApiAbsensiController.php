@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Siswa;
 use App\Models\RombelSiswa;
+use App\Models\TahunAjaran;
 use App\Models\Absensi;
 use App\Services\FonnteService;
 use App\Models\Guru;
@@ -36,15 +37,24 @@ class ApiAbsensiController extends Controller
         // ---------- Siswa flow ----------
         $siswa = Siswa::where('rfid', $rfid)->first();
         if ($siswa) {
-            // cari rombel siswa prioritaskan tahun ajaran aktif
+            // Untuk alat absensi, selalu gunakan tahun ajaran aktif
             $rombel = RombelSiswa::where('siswa_id', $siswa->id)
-                ->whereHas('tahunAjaran', function ($q) { $q->where('aktif', true); })
+                ->whereHas('tahunAjaran', function ($q) { 
+                    $q->where('aktif', true); 
+                })
                 ->first();
+
             if (! $rombel) {
-                // fallback ke rombel terbaru
+                // Jika tidak ada di tahun aktif, cek apakah ada di tahun ajaran manapun
                 $rombel = RombelSiswa::where('siswa_id', $siswa->id)
                     ->orderByDesc('tahun_ajaran_id')
                     ->first();
+
+                // Log warning jika siswa tidak terdaftar di tahun aktif tapi ada di tahun lain
+                if ($rombel) {
+                    \Log::warning("Siswa dengan ID {$siswa->id} melakukan absensi tapi tidak terdaftar di tahun ajaran aktif. Menggunakan rombel dari tahun " . 
+                        ($rombel->tahunAjaran->nama ?? 'tidak diketahui'));
+                }
             }
 
             if (! $rombel) {
@@ -156,11 +166,18 @@ class ApiAbsensiController extends Controller
                     return response()->json(['status' => 'error', 'message' => 'Sudah absen masuk', 'type' => 'guru', 'action' => 'unchanged', 'data' => $absG], 200);
                 }
                 if (! $absG) {
+                    // Ambil tahun ajaran aktif
+                    $tahunAjaran = TahunAjaran::where('aktif', true)->first();
+                    if (!$tahunAjaran) {
+                        $tahunAjaran = TahunAjaran::latest('id')->first();
+                    }
+
                     $absG = AbsensiGuru::create([
                         'guru_id' => $guru->id,
                         'tanggal' => $tanggal,
                         'jam_masuk' => $timeNow,
                         'status' => 'hadir',
+                        'tahun_ajaran_id' => $tahunAjaran ? $tahunAjaran->id : null,
                     ]);
                     return response()->json(['status' => 'ok', 'type' => 'guru', 'action' => 'created', 'data' => $absG], 201);
                 }

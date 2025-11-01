@@ -14,16 +14,34 @@ class RombelSiswaController extends Controller
 {
     public function index()
     {
-        $rombel = RombelSiswa::with(['siswa', 'kelas', 'tahunAjaran'])->get();
+        // show rombel for selected tahun ajaran (session-driven)
+        $tahunId = session('tahun_ajaran_id') ?? \App\Models\TahunAjaran::where('aktif', true)->first()?->id;
+        $rombel = RombelSiswa::with(['siswa', 'kelas', 'tahunAjaran'])
+            ->when($tahunId, fn($q) => $q->where('tahun_ajaran_id', $tahunId))
+            ->get();
         return view('rombel_siswa.index', compact('rombel'));
     }
 
     public function create()
     {
-        // Show all siswa and allow selecting tahun ajaran in the form.
-        $siswa = \App\Models\Siswa::orderBy('nama')->get();
-        $kelas = \App\Models\Kelas::all();
-        $tahunAjaran = \App\Models\TahunAjaran::all();
+        $tahunId = session('tahun_ajaran_id');
+        if (!$tahunId) {
+            return redirect()->route('rombel_siswa.index')
+                ->with('error', 'Pilih tahun ajaran terlebih dahulu di navigation bar');
+        }
+
+        // Ambil ID siswa yang sudah memiliki kelas di tahun ajaran ini
+        $existingSiswaIds = RombelSiswa::where('tahun_ajaran_id', $tahunId)
+            ->pluck('siswa_id')
+            ->toArray();
+
+        // Ambil siswa yang belum memiliki kelas di tahun ajaran ini
+        $siswa = Siswa::whereNotIn('id', $existingSiswaIds)
+            ->orderBy('nama')
+            ->get();
+
+        $kelas = Kelas::all();
+        $tahunAjaran = TahunAjaran::find($tahunId);
 
         return view('rombel_siswa.create', compact('siswa', 'kelas', 'tahunAjaran'));
     }
@@ -150,11 +168,14 @@ class RombelSiswaController extends Controller
         $request->validate([
             'ids' => 'required|array',
             'kelas_baru_id' => 'required|exists:kelas,id',
-            'tahun_ajaran_id' => 'required|exists:tahun_ajaran,id',
         ]);
 
         try {
-            $tahunId = $request->tahun_ajaran_id;
+            // Gunakan session tahun ajaran
+            $tahunId = session('tahun_ajaran_id') ?? \App\Models\TahunAjaran::where('aktif', true)->first()?->id;
+            if (!$tahunId) {
+                return response()->json(['success' => false, 'message' => 'Tahun ajaran belum dipilih'], 400);
+            }
 
             // Ambil rombel lama sebelum update (only for this tahun)
             $rombelsLama = \App\Models\RombelSiswa::whereIn('id', $request->ids)
@@ -209,8 +230,10 @@ class RombelSiswaController extends Controller
         }
 
         $kelas = \App\Models\Kelas::findOrFail($kelasId);
+        $tahunId = session('tahun_ajaran_id') ?? \App\Models\TahunAjaran::where('aktif', true)->first()?->id;
         $rombel = \App\Models\RombelSiswa::with('siswa', 'kelas', 'tahunAjaran')
             ->where('kelas_id', $kelasId)
+            ->when($tahunId, fn($q) => $q->where('tahun_ajaran_id', $tahunId))
             ->orderBy('nomor_absen')
             ->get();
 

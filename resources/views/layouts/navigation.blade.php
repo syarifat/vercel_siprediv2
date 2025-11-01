@@ -1,5 +1,3 @@
-kalau begini bagaimana, dipaling atas menu ada pilihan untuk memilih tahun_ajaran yang mana. nantinya dari ini semua proses seperti rombel, export laporan sudah otomatis dari filter di navbarnya itu. jadi lebih terpusat
-
 <div x-data="{ sidebar: (localStorage.getItem('sidebar') === 'true') ? true : false, profileOpen: false, whatsappOpen: false }" class="flex min-h-screen">
     <!-- Sidebar -->
     <aside
@@ -237,8 +235,57 @@ kalau begini bagaimana, dipaling atas menu ada pilihan untuk memilih tahun_ajara
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
             </button>
-            <!-- Profile Dropdown -->
-            <div class="relative">
+            <!-- Tahun Ajaran selector + Profile Dropdown -->
+            <div class="flex items-center gap-4">
+                {{-- Tahun Ajaran selector (central filter) --}}
+                @php
+                    // Prioritize session value over active flag
+                    $navTahun = session('tahun_ajaran_id');
+                    if (!$navTahun) {
+                        $navTahun = \App\Models\TahunAjaran::where('aktif', true)->first()?->id ?? null;
+                    }
+                    $navTahunList = \App\Models\TahunAjaran::orderBy('nama','desc')->get();
+                    $currentTahunAjaran = $navTahunList->first(fn($ta) => (string)$ta->id === (string)$navTahun);
+                @endphp
+                <div x-data="{ tahunAjaranOpen: false }" class="relative">
+                    <button @click="tahunAjaranOpen = !tahunAjaranOpen" 
+                            class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition">
+                        <span class="bg-orange-100 text-orange-600 rounded px-2 py-1 text-sm font-medium">
+                            {{ $currentTahunAjaran ? "{$currentTahunAjaran->nama} - {$currentTahunAjaran->semester}" : "Pilih Tahun Ajaran" }}
+                        </span>
+                        <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 20 20">
+                            <path d="M5.5 8l4.5 4.5L14.5 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div x-show="tahunAjaranOpen" 
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-100"
+                         x-transition:leave-start="opacity-100 scale-100"
+                         x-transition:leave-end="opacity-0 scale-95"
+                         @click.away="tahunAjaranOpen = false"
+                         class="absolute right-0 mt-2 w-60 bg-white border border-gray-200 rounded shadow-lg z-50">
+                        @foreach($navTahunList as $ta)
+                            <button onclick="changeTahunAjaran('{{ $ta->id }}')"
+                                    class="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 flex items-center justify-between">
+                                <span>{{ $ta->nama }} - {{ $ta->semester }}</span>
+                                @if($ta->aktif)
+                                    <span class="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Aktif</span>
+                                @endif
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                @push('scripts')
+                <script>
+                    console.log('Current navTahun:', {!! json_encode($navTahun) !!});
+                </script>
+                @endpush
+
+                <!-- Profile Dropdown -->
+                <div class="relative">
                 <button @click="profileOpen = !profileOpen" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-100 transition">
                     <span class="bg-orange-500 text-white rounded-full h-8 w-8 flex items-center justify-center font-bold">
                         {{ strtoupper(substr(Auth::user()->role ?? '',0,1)) }}
@@ -263,10 +310,57 @@ kalau begini bagaimana, dipaling atas menu ada pilihan untuk memilih tahun_ajara
                     </form>
                 </div>
             </div>
+
+            <script>
+                async function changeTahunAjaran(id) {
+                    const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+                    if (!tokenMeta) {
+                        console.error('CSRF token tidak ditemukan');
+                        alert('Error: CSRF token tidak ditemukan');
+                        return;
+                    }
+                    const token = tokenMeta.getAttribute('content');
+                    
+                    try {
+                        const response = await fetch("{{ route('tahun_ajaran.set') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': token
+                            },
+                            body: JSON.stringify({ id: id || null })
+                        });
+                        
+                        if (!response.ok) {
+                            const text = await response.text();
+                            console.error('Response tidak OK:', response.status, text);
+                            alert('Gagal mengubah tahun ajaran: ' + response.status);
+                            return;
+                        }
+                        
+                        const result = await response.json();
+                        if (result.ok) {
+                            window.location.reload();
+                        } else {
+                            console.error('Response format tidak sesuai:', result);
+                            alert('Gagal mengubah tahun ajaran: format response tidak sesuai');
+                        }
+                    } catch (err) {
+                        console.error('Error saat mengubah tahun ajaran:', err);
+                        alert('Gagal mengubah tahun ajaran: ' + err.message);
+                    }
+                }
+            </script>
         </header>
         <!-- Page Content -->
-        <main class="flex-1 bg-gray-50 p-4">
-            @yield('content')
+        <main class="flex-1 bg-gray-50">
+            <!-- Container untuk konten dengan margin tambahan dari topbar -->
+            <div class="p-4 mt-16 md:p-8 md:mt-16">
+                <br>
+                <br>
+                @yield('content')
+            </div>
         </main>
     </div>
 </div>

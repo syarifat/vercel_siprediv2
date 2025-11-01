@@ -4,32 +4,63 @@
 <div class="max-w-6xl mx-auto mt-8">
 	<h2 class="text-xl font-bold mb-4">Rekap Absensi Guru</h2>
 
-	<!-- Card Rekap Status (clickable) -->
-	<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-		<button type="button" onclick="toggleCardDetails('belum')" class="bg-blue-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
-			<div class="text-xl sm:text-2xl font-bold text-blue-600" id="card-belum">0</div>
-			<div class="text-xs sm:text-sm font-semibold text-blue-700">Belum Hadir</div>
-		</button>
-		<button type="button" onclick="toggleCardDetails('hadir')" class="bg-green-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
-			<div class="text-xl sm:text-2xl font-bold text-green-600" id="card-hadir">0</div>
-			<div class="text-xs sm:text-sm font-semibold text-green-700">Hadir</div>
-		</button>
-		<button type="button" onclick="toggleCardDetails('izin')" class="bg-yellow-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
-			<div class="text-xl sm:text-2xl font-bold text-yellow-600" id="card-izin">0</div>
-			<div class="text-xs sm:text-sm font-semibold text-yellow-700">Izin</div>
-		</button>
-		<button type="button" onclick="toggleCardDetails('sakit')" class="bg-red-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
-			<div class="text-xl sm:text-2xl font-bold text-red-600" id="card-sakit">0</div>
-			<div class="text-xs sm:text-sm font-semibold text-red-700">Sakit</div>
-		</button>
-		<button type="button" onclick="toggleCardDetails('alpha')" class="bg-pink-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none" aria-controls="card-details" aria-expanded="false">
-			<div class="text-xl sm:text-2xl font-bold text-pink-600" id="card-alpha">0</div>
-			<div class="text-xs sm:text-sm font-semibold text-pink-700">Alpha</div>
-		</button>
-	</div>
+	<!-- Card Rekap Status with inline details -->
+	<div class="grid grid-cols-1 gap-4 mb-4">
+		<!-- Belum Hadir -->
+		<div class="space-y-4">
+			<button type="button" onclick="toggleCardDetails('belum')" 
+					class="bg-blue-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
+					aria-controls="details-belum" aria-expanded="false">
+				<div class="text-xl sm:text-2xl font-bold text-blue-600" id="card-belum">0</div>
+				<div class="text-xs sm:text-sm font-semibold text-blue-700">Belum Hadir</div>
+			</button>
+			<div id="details-belum" class="hidden transition-all"></div>
+		</div>
 
-	<!-- Card details container (hidden until a card is clicked) -->
-	<div id="card-details" class="hidden mb-6"></div>
+		<!-- Hadir -->
+		<div class="space-y-4">
+			<button type="button" onclick="toggleCardDetails('hadir')" 
+					class="bg-green-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
+					aria-controls="details-hadir" aria-expanded="false">
+				<div class="text-xl sm:text-2xl font-bold text-green-600" id="card-hadir">0</div>
+				<div class="text-xs sm:text-sm font-semibold text-green-700">Hadir</div>
+			</button>
+			<div id="details-hadir" class="hidden transition-all"></div>
+		</div>
+
+		<!-- Izin -->
+		<div class="space-y-4">
+			<button type="button" onclick="toggleCardDetails('izin')" 
+					class="bg-yellow-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
+					aria-controls="details-izin" aria-expanded="false">
+				<div class="text-xl sm:text-2xl font-bold text-yellow-600" id="card-izin">0</div>
+				<div class="text-xs sm:text-sm font-semibold text-yellow-700">Izin</div>
+			</button>
+			<div id="details-izin" class="hidden transition-all"></div>
+		</div>
+
+		<!-- Sakit -->
+		<div class="space-y-4">
+			<button type="button" onclick="toggleCardDetails('sakit')" 
+					class="bg-red-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
+					aria-controls="details-sakit" aria-expanded="false">
+				<div class="text-xl sm:text-2xl font-bold text-red-600" id="card-sakit">0</div>
+				<div class="text-xs sm:text-sm font-semibold text-red-700">Sakit</div>
+			</button>
+			<div id="details-sakit" class="hidden transition-all"></div>
+		</div>
+
+		<!-- Alpha -->
+		<div class="space-y-4">
+			<button type="button" onclick="toggleCardDetails('alpha')" 
+					class="bg-pink-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
+					aria-controls="details-alpha" aria-expanded="false">
+				<div class="text-xl sm:text-2xl font-bold text-pink-600" id="card-alpha">0</div>
+				<div class="text-xs sm:text-sm font-semibold text-pink-700">Alpha</div>
+			</button>
+			<div id="details-alpha" class="hidden transition-all"></div>
+		</div>
+	</div>
 
 	<!-- Filter untuk View Tabel -->
 	<div class="mb-6 grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
@@ -75,17 +106,6 @@
 					class="border-2 border-gray-300 rounded-lg px-3 py-2 w-full
 						   focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400
 						   transition duration-200 shadow-sm text-gray-700">
-			</div>
-
-			<!-- Tahun Ajaran (optional) -->
-			<div class="mb-4">
-				<label for="tahun_ajaran_guru" class="block text-sm font-semibold text-gray-600 mb-1">Tahun Ajaran</label>
-				<select id="tahun_ajaran_guru" class="border-2 border-gray-300 rounded-lg px-3 py-2 w-full">
-					<option value="">-- (Semua / Default Aktif) --</option>
-					@foreach(\App\Models\TahunAjaran::orderBy('nama','desc')->get() as $ta)
-						<option value="{{ $ta->id }}" {{ $ta->aktif ? 'selected' : '' }}>{{ $ta->nama }} {{ $ta->aktif ? '(Aktif)' : '' }}</option>
-						@endforeach
-				</select>
 			</div>
 			<!-- Tombol Aksi -->
 			<div class="flex justify-end gap-2">
@@ -221,80 +241,148 @@ document.getElementById('tanggal').addEventListener('change', filterAbsensi);
 setInterval(filterAbsensi, 3000);
 window.addEventListener('DOMContentLoaded', filterAbsensi);
 
-// Card detail functionality (shared container below cards)
+// Card detail functionality with color themes
 function toggleCardDetails(status) {
-	const container = document.getElementById('card-details');
-	if (window.currentCardOpen === status) {
-		// close
-		container.classList.add('hidden');
-		window.currentCardOpen = null;
-		return;
-	}
-	window.currentCardOpen = status;
-	renderCardDetails(status);
-	container.classList.remove('hidden');
-	// scroll to details
-	container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const container = document.getElementById(`details-${status}`);
+    const allContainers = document.querySelectorAll('[id^="details-"]');
+    
+    // Close other containers first
+    allContainers.forEach(cont => {
+        if (cont.id !== `details-${status}`) {
+            cont.classList.add('hidden');
+        }
+    });
+
+    if (window.currentCardOpen === status) {
+        // close current
+        container.classList.add('hidden');
+        window.currentCardOpen = null;
+        return;
+    }
+    
+    window.currentCardOpen = status;
+    renderCardDetails(status);
+    container.classList.remove('hidden');
+    // scroll to details smoothly
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderCardDetails(status) {
-	const container = document.getElementById('card-details');
-	const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
+    const container = document.getElementById(`details-${status}`);
+    const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
 
-	const filtered = window.latestGuruFilteredData || [];
-	const allData = window.latestGuruAllData || [];
+    const filtered = window.latestGuruFilteredData || [];
+    const allData = window.latestGuruAllData || [];
 
-	const renderRows = (rows) => {
-		if (!rows.length) return `<tr><td colspan="2" class="px-4 py-2 text-center text-gray-500">Tidak ada data</td></tr>`;
-		return rows.map((r, i) => `
-			<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
-				<td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${i+1}</td>
-				<td class="px-2 sm:px-4 py-1 sm:py-2">${r.guru_nama ?? r.nama ?? '-'}</td>
-			</tr>
-		`).join('');
-	};
+    // Get color scheme based on status
+    const getColorScheme = (status) => {
+        switch(status) {
+            case 'belum':
+                return {
+                    border: 'border-blue-200',
+                    bg: 'bg-blue-100',
+                    text: 'text-blue-800',
+                    hover: 'hover:bg-blue-50'
+                };
+            case 'hadir':
+                return {
+                    border: 'border-green-200',
+                    bg: 'bg-green-100',
+                    text: 'text-green-800',
+                    hover: 'hover:bg-green-50'
+                };
+            case 'izin':
+                return {
+                    border: 'border-yellow-200',
+                    bg: 'bg-yellow-100',
+                    text: 'text-yellow-800',
+                    hover: 'hover:bg-yellow-50'
+                };
+            case 'sakit':
+                return {
+                    border: 'border-red-200',
+                    bg: 'bg-red-100',
+                    text: 'text-red-800',
+                    hover: 'hover:bg-red-50'
+                };
+            case 'alpha':
+                return {
+                    border: 'border-pink-200',
+                    bg: 'bg-pink-100',
+                    text: 'text-pink-800',
+                    hover: 'hover:bg-pink-50'
+                };
+            default:
+                return {
+                    border: 'border-gray-200',
+                    bg: 'bg-gray-100',
+                    text: 'text-gray-800',
+                    hover: 'hover:bg-gray-50'
+                };
+        }
+    };
 
-	let title = '';
-	let rowsHtml = '';
+    const colors = getColorScheme(status);
 
-	if (status === 'belum') {
-		title = 'Daftar Belum Hadir';
-		const presentSet = new Set(allData.map(a => a.guru_nama));
-		const missing = initialGuruList
-			.filter(g => !presentSet.has(g.nama))
-			.map(g => ({ nama: g.nama }));
-		// adapt rows to table shape
-		const rows = missing.map(m => ({ guru_nama: m.nama }));
-		rowsHtml = renderRows(rows);
-	} else {
-		title = 'Daftar ' + status.charAt(0).toUpperCase() + status.slice(1);
-		const filteredRows = filtered
-			.filter(a => (a.status || '').toString().toLowerCase() === status)
-			.map(a => ({ guru_nama: a.guru_nama, tanggal: a.tanggal, jam_masuk: a.jam_masuk, jam_pulang: a.jam_pulang, status: a.status }));
-		rowsHtml = renderRows(filteredRows);
-	}
+    const renderRows = (rows) => {
+        if (!rows.length) return `<tr><td colspan="4" class="px-4 py-2 text-center text-gray-500">Tidak ada data</td></tr>`;
+        return rows.map((r, i) => `
+            <tr class="bg-white border-b ${colors.border} ${colors.hover}">
+                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${i+1}</td>
+                <td class="px-2 sm:px-4 py-1 sm:py-2">${r.guru_nama ?? r.nama ?? '-'}</td>
+                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${r.jam_masuk ?? '-'}</td>
+                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${r.keterangan ?? '-'}</td>
+            </tr>
+        `).join('');
+    };
 
-	container.innerHTML = `
-		<div class="bg-white border rounded-lg shadow p-4">
-			<div class="flex items-center justify-between mb-3">
-				<h3 class="font-semibold text-lg">${title} — ${tanggal}</h3>
-				<button type="button" onclick="toggleCardDetails('${status}')" class="text-sm text-gray-600 hover:text-gray-800">Tutup</button>
-			</div>
-			<div class="overflow-x-auto">
-				<table class="min-w-full border-2 border-orange-100 rounded-lg overflow-hidden shadow table-auto text-sm">
-					<thead>
-						<tr class="bg-orange-100 text-orange-800">
-							<th class="px-2 sm:px-4 py-1 sm:py-2 text-center">No</th>
-							<th class="px-2 sm:px-4 py-1 sm:py-2">Nama Guru</th>
-						</tr>
-					</thead>
-					<tbody>
-						${rowsHtml}
-					</tbody>
-				</table>
-			</div>
-		</div>
-	`;
+    let title = '';
+    let rowsHtml = '';
+
+    if (status === 'belum') {
+        title = 'Daftar Belum Hadir';
+        const presentSet = new Set(allData.map(a => a.guru_nama));
+        const missing = initialGuruList
+            .filter(g => !presentSet.has(g.nama))
+            .map(g => ({ nama: g.nama }));
+        // adapt rows to table shape
+        const rows = missing.map(m => ({ guru_nama: m.nama }));
+        rowsHtml = renderRows(rows);
+    } else {
+        title = 'Daftar ' + status.charAt(0).toUpperCase() + status.slice(1);
+        const filteredRows = filtered
+            .filter(a => (a.status || '').toString().toLowerCase() === status)
+            .map(a => ({ 
+                guru_nama: a.guru_nama, 
+                jam_masuk: a.jam_masuk,
+                keterangan: a.keterangan
+            }));
+        rowsHtml = renderRows(filteredRows);
+    }
+
+    container.innerHTML = `
+        <div class="bg-white border rounded-lg shadow p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="font-semibold text-lg ${colors.text}">${title} — ${tanggal}</h3>
+                <button type="button" onclick="toggleCardDetails('${status}')" class="text-sm text-gray-600 hover:text-gray-800">Tutup</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full border-2 ${colors.border} rounded-lg overflow-hidden shadow table-auto text-sm">
+                    <thead>
+                        <tr class="${colors.bg} ${colors.text}">
+                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">No</th>
+                            <th class="px-2 sm:px-4 py-1 sm:py-2">Nama Guru</th>
+                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">Jam Masuk</th>
+                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
 }
 
 function exportAbsensiGuru(type) {
@@ -304,9 +392,7 @@ function exportAbsensiGuru(type) {
 		return;
 	}
 	document.getElementById('exportModal').classList.add('hidden');
-	const tahunAjaranId = document.getElementById('tahun_ajaran_guru') ? document.getElementById('tahun_ajaran_guru').value : '';
-	let url = `/absensi_guru/export/${type}?periode=${periode}`;
-	if (tahunAjaranId) url += `&tahun_ajaran_id=${encodeURIComponent(tahunAjaranId)}`;
+	let url = `/rekap/absensi-guru/export/${type}?periode=${periode}`;
 	window.location.href = url;
 }
 </script>

@@ -30,7 +30,7 @@
             <tbody>
                 @foreach($tahunAjaran as $i => $row)
                 <tr class="{{ $i % 2 == 0 ? 'bg-white' : 'bg-gray-100' }} border-b border-orange-200 hover:bg-orange-50">
-                    <td class="px-2 py-2 text-center">{{ $row->nama }}</td>
+                    <td class="px-2 py-2 text-center">{{ $row->nama }} - {{ $row->semester }}</td>
                     <td class="px-2 py-2 text-center">{{ $row->semester }}</td>
                     <td class="px-2 py-2 text-center">
                         @if($row->aktif)

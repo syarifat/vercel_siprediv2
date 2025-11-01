@@ -17,6 +17,7 @@ class AbsensiGuru extends Model
         'jam_pulang',
         'status',
         'keterangan',
+        'tahun_ajaran_id', // tambahkan ini
     ];
 
     protected $casts = [
@@ -26,5 +27,11 @@ class AbsensiGuru extends Model
     public function guru()
     {
         return $this->belongsTo(Guru::class, 'guru_id');
+    }
+
+    // Tambahkan relasi ke TahunAjaran
+    public function tahunAjaran()
+    {
+        return $this->belongsTo(TahunAjaran::class);
     }
 }

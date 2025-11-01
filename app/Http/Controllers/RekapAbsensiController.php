@@ -26,8 +26,9 @@ class RekapAbsensiController extends Controller
         }
 
         // allow exporting guru rekap by passing ?subject=guru
-        $subject = $request->input('subject', 'siswa');
-        $tahunAjaranId = $request->input('tahun_ajaran_id');
+    $subject = $request->input('subject', 'siswa');
+    // prefer explicit request param, then session (set by AppServiceProvider), then active fallback
+    $tahunAjaranId = $request->input('tahun_ajaran_id') ?? session('tahun_ajaran_id') ?? \App\Models\TahunAjaran::where('aktif', true)->first()?->id;
 
         if ($type === 'pdf') {
             if ($subject === 'guru') {
@@ -162,12 +163,14 @@ class RekapAbsensiController extends Controller
         // Buat nama file custom
         $fileName = "Rekap Kehadiran Siswa {$kelasNama} - {$periodeLabel}.pdf";
 
+        $tahunAjaranData = TahunAjaran::find($tahunAjaranId);
         $pdf = PDF::loadView('rekap.absensi_siswa_pdf', [
             'rekap' => $rekap,
             'daysInMonth' => $daysInMonth,
             'periode' => $periodeLabel,
             'kelas' => $kelasNama,
             'tahun' => $tahunLabel,
+            'semester' => $tahunAjaranData ? $tahunAjaranData->semester : (Carbon::now()->month <= 6 ? 'Genap' : 'Ganjil'),
             'dayFlags' => $dayFlags,
         ])->setPaper('a4', 'landscape');
 

@@ -3,6 +3,13 @@
 @section('content')
 <div class="max-w-4xl mx-auto mt-8">
     <h2 class="text-xl font-bold mb-4">Data Rombel Siswa</h2>
+    @php $tahunAjaran = \App\Models\TahunAjaran::find(session('tahun_ajaran_id')); @endphp
+    <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-4">
+        <p class="font-bold">Tahun Ajaran: {{ $tahunAjaran ? ($tahunAjaran->nama . ' - ' . $tahunAjaran->semester) : 'Belum dipilih' }}</p>
+        @if(!$tahunAjaran)
+            <p class="text-sm mt-1">Pilih tahun ajaran di navigation bar untuk melihat data</p>
+        @endif
+    </div>
     <a href="{{ route('rombel_siswa.create') }}" class="bg-green-400 hover:bg-green-500 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200 mb-4 inline-block">
         Tambah Rombel
     </a>
@@ -23,18 +30,6 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                 </svg>
             </span>
-        </div>
-
-        <div class="relative">
-            <select id="tahun_ajaran_id"
-                class="border-2 border-gray-300 rounded-lg pl-4 pr-4 py-2 w-56
-                    focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-                    transition duration-200 shadow-sm bg-white text-gray-700 font-semibold appearance-none">
-                <option value="">-- Pilih Tahun Ajaran --</option>
-                @foreach(\App\Models\TahunAjaran::all() as $ta)
-                    <option value="{{ $ta->id }}">{{ $ta->nama }}</option>
-                @endforeach
-            </select>
         </div>
 
         <button id="btn-ganti-kelas" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200" disabled>
@@ -94,7 +89,6 @@
 <script>
     function fetchRombel() {
     const kelas_id = document.getElementById('kelas_id').value;
-    const tahun_ajaran_id = document.getElementById('tahun_ajaran_id').value;
     const tableContainer = document.getElementById('rombel-table-container');
     if (!kelas_id) {
         tableContainer.style.display = 'none';
@@ -102,7 +96,6 @@
         return;
     }
     let url = `/api/rombel-siswa?kelas_id=${encodeURIComponent(kelas_id)}`;
-    if (tahun_ajaran_id) url += `&tahun_ajaran_id=${encodeURIComponent(tahun_ajaran_id)}`;
     fetch(url)
         .then(res => res.json())
         .then(data => {
@@ -117,7 +110,7 @@
                     <td class="px-4 py-2 text-left">${row.siswa_nama ?? '-'}</td>
                     <td class="px-4 py-2 text-center">${row.siswa_nis ?? '-'}</td>
                     <td class="px-4 py-2 text-center">${row.kelas_nama ?? '-'}</td>
-                    <td class="px-4 py-2 text-center">${row.tahun_ajaran_nama ?? '-'}</td>
+                    <td class="px-4 py-2 text-center">${row.tahun_ajaran_nama ? `${row.tahun_ajaran_nama} - ${row.tahun_ajaran_semester}` : '-'}</td>
                     <td class="px-4 py-2 text-center">
                         <a href="/rombel_siswa/${row.id}/edit" class="text-blue-600">Ganti Kelas</a>
                     </td>
@@ -137,13 +130,7 @@ document.addEventListener('change', function(e) {
 
 // Modal logic
 document.getElementById('btn-ganti-kelas').addEventListener('click', function() {
-    const tahun = document.getElementById('tahun_ajaran_id').value;
-    if (!tahun) {
-        alert('Silakan pilih Tahun Ajaran terlebih dahulu untuk mengganti kelas massal.');
-        return;
-    }
-    // set hidden input in modal
-    document.getElementById('modal_tahun_ajaran_id').value = tahun;
+    // set hidden input in modal untuk menggunakan session tahun ajaran
     document.getElementById('modal-ganti-kelas').style.display = '';
 });
 document.getElementById('btn-batal-modal').addEventListener('click', function() {
@@ -155,7 +142,7 @@ document.getElementById('form-ganti-kelas').addEventListener('submit', function(
     e.preventDefault();
     const ids = Array.from(document.querySelectorAll('.check-siswa:checked')).map(cb => cb.value);
     const kelas_baru_id = document.getElementById('kelas_baru_id').value;
-    const tahun_ajaran_id = document.getElementById('modal_tahun_ajaran_id').value || document.getElementById('tahun_ajaran_id').value;
+    
     if (ids.length === 0) {
         alert('Pilih siswa terlebih dahulu!');
         return;
@@ -164,10 +151,7 @@ document.getElementById('form-ganti-kelas').addEventListener('submit', function(
         alert('Pilih kelas baru!');
         return;
     }
-    if (!tahun_ajaran_id) {
-        alert('Tahun Ajaran tidak terdeteksi. Pilih tahun terlebih dahulu.');
-        return;
-    }
+    
     fetch('/rombel_siswa/ganti-kelas-massal', {
         method: 'POST',
         headers: {
@@ -175,7 +159,7 @@ document.getElementById('form-ganti-kelas').addEventListener('submit', function(
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         },
-        body: JSON.stringify({ ids, kelas_baru_id, tahun_ajaran_id })
+        body: JSON.stringify({ ids, kelas_baru_id })
     })
     .then(res => res.json())
     .then(json => {
@@ -194,22 +178,15 @@ document.getElementById('form-ganti-kelas').addEventListener('submit', function(
 document.getElementById('kelas_id').addEventListener('change', fetchRombel);
 </script>
 <script>
-        // Enable/disable tombol export sesuai kelas (and tahun if selected)
+        // Enable/disable tombol export sesuai kelas
             function updateExportButtonState() {
                 const kelas = document.getElementById('kelas_id').value;
-                const tahun = document.getElementById('tahun_ajaran_id').value;
-                    // Require BOTH kelas and tahun selected to enable export and Ganti Kelas
-                    const enabled = (kelas && tahun);
-                    document.getElementById('btn-export-pdf').disabled = !enabled;
-                    document.getElementById('btn-ganti-kelas').disabled = !enabled;
+                const enabled = kelas;
+                document.getElementById('btn-export-pdf').disabled = !enabled;
+                document.getElementById('btn-ganti-kelas').disabled = !enabled;
             }
 
             document.getElementById('kelas_id').addEventListener('change', function() {
-                fetchRombel();
-                updateExportButtonState();
-            });
-
-            document.getElementById('tahun_ajaran_id').addEventListener('change', function() {
                 fetchRombel();
                 updateExportButtonState();
             });
@@ -220,13 +197,11 @@ document.getElementById('kelas_id').addEventListener('change', fetchRombel);
     // Export PDF
     document.getElementById('btn-export-pdf').addEventListener('click', function() {
         const kelasId = document.getElementById('kelas_id').value;
-        const tahunId = document.getElementById('tahun_ajaran_id').value;
         if (!kelasId) {
             alert('Pilih kelas terlebih dahulu');
             return;
         }
         let href = `/rombel_siswa/export/pdf?kelas_id=${kelasId}`;
-        if (tahunId) href += `&tahun_ajaran_id=${tahunId}`;
         window.location.href = href;
     });
     </script>

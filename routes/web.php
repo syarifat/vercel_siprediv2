@@ -7,6 +7,7 @@ use App\Http\Controllers\TahunAjaranController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AbsensiController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\RombelSiswaController;
 use App\Http\Controllers\GuruController;
 use App\Http\Controllers\AbsensiGuruController;
@@ -14,6 +15,17 @@ use App\Http\Controllers\AbsensiGuruController;
 Route::get('/', function () {
     return view('welcome');
 });
+
+// Set tahun ajaran in session (central selector)
+Route::post('/set-tahun-ajaran', function (Request $request) {
+    $id = $request->input('id');
+    if ($id) {
+        session(['tahun_ajaran_id' => $id]);
+    } else {
+        session()->forget('tahun_ajaran_id');
+    }
+    return response()->json(['ok' => true]);
+})->name('tahun_ajaran.set');
 
 use App\Http\Controllers\DashboardController;
 
@@ -61,6 +73,7 @@ Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set
 
 #testing export absensi
 Route::get('/absensi/export/{type}', [App\Http\Controllers\RekapAbsensiController::class, 'export'])->name('absensi.export');
+Route::get('/rekap/absensi-guru/export/{type}', [App\Http\Controllers\RekapAbsensiGuruController::class, 'export'])->name('rekap.absensi-guru.export');
 #testing export rombel siswa
 Route::get('/rombel_siswa/export/pdf', [App\Http\Controllers\RombelSiswaController::class, 'exportPdf'])->name('rombel_siswa.export.pdf');
 

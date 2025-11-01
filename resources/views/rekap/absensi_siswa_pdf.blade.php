@@ -18,6 +18,7 @@
     <h3 style="text-align:center;">Rekap Absensi Siswa</h3>
     <p>
         Tahun Ajaran : {{ $tahun }} <br>
+        Semester     : {{ $semester }} <br>
         Kelas        : {{ $kelas }} <br>
         Periode      : {{ $periode }}
     </p>

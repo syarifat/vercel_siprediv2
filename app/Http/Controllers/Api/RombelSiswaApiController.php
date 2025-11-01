@@ -22,10 +22,22 @@ class RombelSiswaApiController extends Controller
             $query->where('kelas_id', $request->kelas_id);
         }
 
-        // Support filtering by tahun ajaran if provided
-        if ($request->tahun_ajaran_id) {
-            $query->where('tahun_ajaran_id', $request->tahun_ajaran_id);
+        // Support filtering by tahun ajaran: prefer request, then session
+        $tahunFilter = $request->input('tahun_ajaran_id') ?? session('tahun_ajaran_id');
+        
+        // Debug response untuk memeriksa session dan filter
+        if (!$tahunFilter) {
+            return response()->json([
+                'error' => 'Tahun ajaran belum dipilih',
+                'debug' => [
+                    'session_tahun' => session('tahun_ajaran_id'),
+                    'request_tahun' => $request->input('tahun_ajaran_id'),
+                    'has_session' => session()->has('tahun_ajaran_id'),
+                ]
+            ], 400);
         }
+        
+        $query->where('tahun_ajaran_id', $tahunFilter);
 
         // Prefer ordering by nomor_absen when available, otherwise by id desc
         if (in_array('nomor_absen', $query->getModel()->getFillable())) {

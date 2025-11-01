@@ -39,6 +39,8 @@
 			<label class="block">Keterangan</label>
 			<input type="text" name="keterangan" class="w-full border p-2">
 		</div>
+		<!-- Tahun Ajaran (hidden, use active from session) -->
+		<input type="hidden" name="tahun_ajaran_id" value="{{ session('tahun_ajaran_id') }}">
 		<div class="flex justify-end">
 			<button class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>
 		</div>

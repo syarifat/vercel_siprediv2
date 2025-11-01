@@ -22,14 +22,11 @@
                 @endforeach
             </select>
         </div>
-        <div>
-            <label class="block">Tahun Ajaran</label>
-            <select name="tahun_ajaran_id" class="border rounded px-2 py-1 w-full" required>
-                <option value="">- Pilih Tahun Ajaran -</option>
-                @foreach($tahunAjaran as $ta)
-                    <option value="{{ $ta->id }}" @if($rombel->tahun_ajaran_id == $ta->id) selected @endif>{{ $ta->nama }}</option>
-                @endforeach
-            </select>
+        <input type="hidden" name="tahun_ajaran_id" value="{{ session('tahun_ajaran_id') }}">
+        <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-4">
+            @php $ta = \App\Models\TahunAjaran::find(session('tahun_ajaran_id')); @endphp
+            <p>Tahun Ajaran: {{ $ta ? ($ta->nama . ' - ' . $ta->semester) : 'Belum dipilih' }}</p>
+            <p class="text-sm">Gunakan selector tahun ajaran di navigation bar untuk mengubah tahun ajaran</p>
         </div>
         <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Update</button>
     </form>
