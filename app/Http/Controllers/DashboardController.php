@@ -30,8 +30,16 @@ class DashboardController extends Controller
             })
             ->get();
 
-        $dataSakitIzin = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
-            ->whereIn('status', ['Sakit', 'Izin'])
+        $dataSakit = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
+            ->where('status', 'Sakit')
+            ->whereDate('tanggal', $today)
+            ->whereHas('rombel', function($q) use ($tahunAjaranId) {
+                $q->where('tahun_ajaran_id', $tahunAjaranId);
+            })
+            ->get();
+
+        $dataIzin = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
+            ->where('status', 'Izin')
             ->whereDate('tanggal', $today)
             ->whereHas('rombel', function($q) use ($tahunAjaranId) {
                 $q->where('tahun_ajaran_id', $tahunAjaranId);
@@ -54,7 +62,8 @@ class DashboardController extends Controller
             })->get();
 
         $jumlahHadir = $dataHadir->count();
-        $jumlahSakitIzin = $dataSakitIzin->count();
+        $jumlahSakit = $dataSakit->count();
+        $jumlahIzin = $dataIzin->count();
         $jumlahTanpaKeterangan = $dataTanpaKeterangan->count();
         $jumlahBelumHadir = $dataBelumHadir->count();
 
@@ -70,13 +79,21 @@ class DashboardController extends Controller
             ->get();
         $guruHadir = $dataGuruHadir->count();
         
-        // Data Guru Sakit/Izin
-        $dataGuruSakitIzin = AbsensiGuru::with('guru')
-            ->whereIn('status', ['Sakit', 'Izin'])
+        // Data Guru Sakit
+        $dataGuruSakit = AbsensiGuru::with('guru')
+            ->where('status', 'Sakit')
             ->whereDate('tanggal', $today)
             ->where('tahun_ajaran_id', $tahunAjaranId)
             ->get();
-        $guruSakitIzin = $dataGuruSakitIzin->count();
+        $guruSakit = $dataGuruSakit->count();
+
+        // Data Guru Izin
+        $dataGuruIzin = AbsensiGuru::with('guru')
+            ->where('status', 'Izin')
+            ->whereDate('tanggal', $today)
+            ->where('tahun_ajaran_id', $tahunAjaranId)
+            ->get();
+        $guruIzin = $dataGuruIzin->count();
         
         // Data Guru Tanpa Keterangan
         $dataGuruTanpaKet = AbsensiGuru::with('guru')
@@ -85,7 +102,7 @@ class DashboardController extends Controller
             ->where('tahun_ajaran_id', $tahunAjaranId)
             ->get();
         $guruTanpaKet = $dataGuruTanpaKet->count();
-        $guruBelumHadir = $totalGuru - ($guruHadir + $guruSakitIzin + $guruTanpaKet);
+        $guruBelumHadir = $totalGuru - ($guruHadir + $guruSakit + $guruIzin + $guruTanpaKet);
 
         return view('dashboard', compact(
             'tahunAjaran',
@@ -94,8 +111,10 @@ class DashboardController extends Controller
             'jumlahSiswa',
             'dataHadir',
             'jumlahHadir',
-            'dataSakitIzin',
-            'jumlahSakitIzin',
+            'dataSakit',
+            'jumlahSakit',
+            'dataIzin',
+            'jumlahIzin',
             'dataTanpaKeterangan',
             'jumlahTanpaKeterangan',
             'dataBelumHadir',
@@ -103,8 +122,10 @@ class DashboardController extends Controller
             'totalGuru',
             'guruHadir',
             'dataGuruHadir',
-            'guruSakitIzin',
-            'dataGuruSakitIzin',
+            'guruSakit',
+            'dataGuruSakit',
+            'guruIzin',
+            'dataGuruIzin',
             'guruTanpaKet',
             'dataGuruTanpaKet',
             'guruBelumHadir'

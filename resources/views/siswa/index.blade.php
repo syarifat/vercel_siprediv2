@@ -1,9 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $isGuru = auth()->user()->role === 'guru';
+@endphp
 <div class="max-w-4xl mx-auto mt-8">
     <h2 class="text-xl font-bold mb-4">Daftar Siswa</h2>
+    @if(!$isGuru)
     <a href="{{ route('siswa.create') }}" class="bg-green-400 hover:bg-green-500 text-white font-semibold px-4 py-2 rounded-lg shadow mb-4 inline-block transition duration-200">Tambah Siswa</a>
+    @endif
     
     <!-- Search Box -->
     <div class="relative mb-4">
@@ -28,7 +33,9 @@
                 <th class="px-4 py-2 text-center font-semibold">Jenis Kelamin</th>
                 <th class="px-4 py-2 text-center font-semibold">No HP Ortu</th>
                 <th class="px-4 py-2 text-center font-semibold">Status</th>
+                @if(!$isGuru)
                 <th class="px-4 py-2 text-center font-semibold">Aksi</th>
+                @endif
             </tr>
         </thead>
         <tbody id="siswa-tbody">
@@ -44,6 +51,7 @@
                 </td>
                 <td class="px-4 py-2 text-center">{{ $row->no_hp_ortu }}</td>
                 <td class="px-4 py-2 text-center">{{ $row->status ? ucfirst($row->status) : '-' }}</td>
+                @if(!$isGuru)
                 <td class="px-4 py-2 text-center">
                     <a href="{{ route('siswa.edit', $row) }}" class="text-blue-600">Edit</a>
                     <form action="{{ route('siswa.destroy', $row) }}" method="POST" class="inline">
@@ -51,6 +59,7 @@
                         <button type="submit" class="text-pink-600 ml-2" onclick="return confirm('Hapus siswa ini?')">Hapus</button>
                     </form>
                 </td>
+                @endif
             </tr>
             @endforeach
         </tbody>
@@ -80,6 +89,7 @@ function fetchSiswa() {
                     <td class="px-4 py-2 text-center">${jenis}</td>
                     <td class="px-4 py-2 text-center">${status}</td>
                     <td class="px-4 py-2 text-center">${row.no_hp_ortu ?? '-'}</td>
+                    ${!{{ $isGuru }} ? `
                     <td class="px-4 py-2 text-center">
                         <a href="/siswa/${row.id}/edit" class="text-blue-600">Edit</a>
                         <form action="/siswa/${row.id}" method="POST" class="inline" onsubmit="return confirm('Hapus siswa ini?')">
@@ -87,6 +97,7 @@ function fetchSiswa() {
                             <button type="submit" class="text-pink-600 ml-2">Hapus</button>
                         </form>
                     </td>
+                    ` : ''}
                 </tr>`;
             });
             document.getElementById('siswa-tbody').innerHTML = tbody;

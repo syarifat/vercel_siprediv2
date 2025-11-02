@@ -19,7 +19,17 @@
     <form method="POST" action="{{ route('rombel_siswa.mass_store') }}" class="space-y-4">
         @csrf
         <div>
-            <label class="block mb-2">Pilih Siswa ({{ $siswa->count() }} siswa tersedia)</label>
+            <div class="flex justify-between items-center mb-2">
+                <label class="block">Pilih Siswa ({{ $siswa->count() }} siswa tersedia)</label>
+                <span id="selectedCount" class="text-sm text-blue-600 font-semibold">0 siswa dipilih</span>
+            </div>
+            <div class="mb-3">
+                <input type="text" 
+                    id="searchInput" 
+                    placeholder="Cari berdasarkan nama atau NIS..." 
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    oninput="filterSiswa(this.value)">
+            </div>
             <div class="border rounded px-2 py-1 bg-white overflow-x-auto">
                 <table class="min-w-full">
                     <thead>
@@ -63,8 +73,59 @@
     @endif
 </div>
 <script>
+function updateSelectedCount() {
+    const checkedCount = document.querySelectorAll('.siswa-check:checked').length;
+    document.getElementById('selectedCount').textContent = `${checkedCount} siswa dipilih`;
+}
+
 function toggleAll(source) {
-    document.querySelectorAll('.siswa-check').forEach(cb => cb.checked = source.checked);
+    document.querySelectorAll('.siswa-check:not(:disabled)').forEach(cb => {
+        cb.checked = source.checked;
+    });
+    updateSelectedCount();
+}
+
+// Add event listeners when document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Add listeners to checkboxes
+    document.querySelectorAll('.siswa-check').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+    
+    // Add listener to search input
+    document.getElementById('searchInput').addEventListener('input', function(e) {
+        filterSiswa(e.target.value);
+    });
+
+    // Initialize selected count
+    updateSelectedCount();
+});
+
+function filterSiswa(query) {
+    query = query.toLowerCase().trim();
+    const rows = document.querySelectorAll('tbody tr');
+    let visibleCount = 0;
+    
+    rows.forEach(row => {
+        const nis = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
+        const nama = row.querySelector('td:nth-child(3)').textContent.toLowerCase().split('Sudah:')[0].trim(); // Ambil nama saja, tanpa catatan "Sudah:"
+        
+        if (nis.includes(query) || nama.includes(query)) {
+            row.style.display = '';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+
+    // Update "Select All" checkbox based on filtered items
+    const checkAllBox = document.getElementById('checkAll');
+    if (visibleCount === 0) {
+        checkAllBox.disabled = true;
+        checkAllBox.checked = false;
+    } else {
+        checkAllBox.disabled = false;
+    }
 }
 </script>
 <script>

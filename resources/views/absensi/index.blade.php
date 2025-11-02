@@ -157,7 +157,7 @@
                 <th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Jam Masuk</th>
                 <th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Jam Pulang</th>
                 <th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Status</th>
-                <th class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Keterangan</th>
+                <th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Keterangan</th>
                 <th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Aksi</th>
             </tr>
         </thead>
@@ -173,7 +173,7 @@
                 <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->jam_masuk ?? '-' }}</td>
                 <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->jam_pulang ?? '-' }}</td>
                 <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->status }}</td>
-                <td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->keterangan ?? '-' }}</td>
+                <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->keterangan ?? '-' }}</td>
                 <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
                     <a href="{{ route('absensi.edit', $row) }}" class="text-pink-600 text-sm">Edit</a>
                 </td>
@@ -245,7 +245,7 @@ function fetchAbsensi() {
                             <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.jam_masuk ?? '-'}</td>
                             <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
                             <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
-                            <td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
+                            <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
                             <td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
                                 <a href="/absensi/${row.id}/edit" class="text-pink-600 text-sm">Edit</a>
                             </td>
@@ -264,7 +264,10 @@ document.getElementById('search').addEventListener('input', fetchAbsensi);
 document.getElementById('tanggal').addEventListener('change', fetchAbsensi);
 document.getElementById('kelas_id').addEventListener('change', fetchAbsensi);
 setInterval(fetchAbsensi, 3000);
-window.addEventListener('DOMContentLoaded', fetchAbsensi);
+window.addEventListener('DOMContentLoaded', () => {
+    window.userRole = '{{ Auth::user()->role }}';
+    fetchAbsensi();
+});
 // Card detail functionality
 window.currentCardOpen = null;
 function toggleCardDetails(status) {

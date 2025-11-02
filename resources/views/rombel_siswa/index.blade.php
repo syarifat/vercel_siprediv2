@@ -3,16 +3,21 @@
 @section('content')
 <div class="max-w-4xl mx-auto mt-8">
     <h2 class="text-xl font-bold mb-4">Data Rombel Siswa</h2>
-    @php $tahunAjaran = \App\Models\TahunAjaran::find(session('tahun_ajaran_id')); @endphp
+    @php 
+        $tahunAjaran = \App\Models\TahunAjaran::find(session('tahun_ajaran_id'));
+        $isGuru = auth()->user()->role === 'guru';
+    @endphp
     <div class="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 mb-4">
         <p class="font-bold">Tahun Ajaran: {{ $tahunAjaran ? ($tahunAjaran->nama . ' - ' . $tahunAjaran->semester) : 'Belum dipilih' }}</p>
         @if(!$tahunAjaran)
             <p class="text-sm mt-1">Pilih tahun ajaran di navigation bar untuk melihat data</p>
         @endif
     </div>
+    @if(!$isGuru)
     <a href="{{ route('rombel_siswa.create') }}" class="bg-green-400 hover:bg-green-500 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200 mb-4 inline-block">
         Tambah Rombel
     </a>
+    @endif
 
     <div class="flex flex-wrap gap-4 mb-4">
         <div class="relative">
@@ -32,9 +37,11 @@
             </span>
         </div>
 
+        @if(!$isGuru)
         <button id="btn-ganti-kelas" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200" disabled>
             Ganti Kelas Massal
         </button>
+        @endif
         <!-- Tombol Export PDF -->
         <button id="btn-export-pdf" class="bg-pink-500 hover:bg-pink-600 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200" disabled>
             Export PDF
@@ -69,15 +76,19 @@
         <table class="min-w-full border-2 border-orange-400 rounded-lg overflow-hidden shadow border-collapse">
             <thead>
                 <tr class="bg-orange-500 text-white border-b-2 border-orange-400 rounded-none">
+                    @if(!$isGuru)
                     <th class="px-4 py-2 text-center font-semibold">
                         <input type="checkbox" id="check-all">
                     </th>
+                    @endif
                     <th class="px-4 py-2 text-center font-semibold">No. Absen</th>
                     <th class="px-4 py-2 text-left font-semibold">Nama Siswa</th>
                     <th class="px-4 py-2 text-center font-semibold">NIS</th>
                     <th class="px-4 py-2 text-center font-semibold">Kelas</th>
                     <th class="px-4 py-2 text-center font-semibold">Tahun Ajaran</th>
+                    @if(!$isGuru)
                     <th class="px-4 py-2 text-center font-semibold">Aksi</th>
+                    @endif
                 </tr>
             </thead>
             <tbody id="rombel-tbody">
@@ -103,17 +114,17 @@
             let csrf = '{{ csrf_token() }}';
             data.forEach((row, i) => {
                 tbody += `<tr class="${i % 2 == 0 ? 'bg-white' : 'bg-gray-100'} border-b border-orange-200 hover:bg-orange-50">
-                    <td class="px-4 py-2 text-center">
+                    ${!{{ $isGuru }} ? `<td class="px-4 py-2 text-center">
                         <input type="checkbox" class="check-siswa" value="${row.id}">
-                    </td>
+                    </td>` : ''}
                     <td class="px-4 py-2 text-center">${row.nomor_absen ?? '-'}</td>
                     <td class="px-4 py-2 text-left">${row.siswa_nama ?? '-'}</td>
                     <td class="px-4 py-2 text-center">${row.siswa_nis ?? '-'}</td>
                     <td class="px-4 py-2 text-center">${row.kelas_nama ?? '-'}</td>
                     <td class="px-4 py-2 text-center">${row.tahun_ajaran_nama ? `${row.tahun_ajaran_nama} - ${row.tahun_ajaran_semester}` : '-'}</td>
-                    <td class="px-4 py-2 text-center">
+                    ${!{{ $isGuru }} ? `<td class="px-4 py-2 text-center">
                         <a href="/rombel_siswa/${row.id}/edit" class="text-blue-600">Ganti Kelas</a>
-                    </td>
+                    </td>` : ''}
                 </tr>`;
             });
             document.getElementById('rombel-tbody').innerHTML = tbody;

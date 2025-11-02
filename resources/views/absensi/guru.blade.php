@@ -129,7 +129,9 @@
 				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Jam Pulang</th>
 				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Status</th>
 				<th class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Keterangan</th>
+				@if(Auth::user()->role !== 'guru')
 				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Aksi</th>
+				@endif
 			</tr>
 		</thead>
 		<tbody id="tbody-absensi">
@@ -142,9 +144,11 @@
 				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->jam_pulang ?? '-' }}</td>
 				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->status }}</td>
 				<td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->keterangan ?? '-' }}</td>
+				@if(Auth::user()->role !== 'guru')
 				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
 					<a href="{{ route('absensi_guru.edit', $row) }}" class="text-blue-600">Edit</a>
 				</td>
+				@endif
 			</tr>
 			@endforeach
 		</tbody>
@@ -176,7 +180,11 @@ function renderTable(data) {
 			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
 			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
 			<td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
-			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center"><a href="/absensi_guru/${row.id}/edit" class="text-blue-600">Edit</a></td>
+			${window.userRole !== 'guru' ? `
+				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
+					<a href="/absensi_guru/${row.id}/edit" class="text-blue-600">Edit</a>
+				</td>
+			` : ''}
 		</tr>`;
 	});
 	document.getElementById('tbody-absensi').innerHTML = tbody;
@@ -239,7 +247,10 @@ function filterAbsensi() {
 document.getElementById('search').addEventListener('input', filterAbsensi);
 document.getElementById('tanggal').addEventListener('change', filterAbsensi);
 setInterval(filterAbsensi, 3000);
-window.addEventListener('DOMContentLoaded', filterAbsensi);
+window.addEventListener('DOMContentLoaded', () => {
+    window.userRole = '{{ Auth::user()->role }}';
+    filterAbsensi();
+});
 
 // Card detail functionality with color themes
 function toggleCardDetails(status) {

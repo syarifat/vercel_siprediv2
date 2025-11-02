@@ -20,6 +20,9 @@
             <label class="block mb-1 font-semibold">Keterangan</label>
             <input type="text" name="keterangan" class="w-full border rounded px-3 py-2" value="{{ old('keterangan', $absensi->keterangan) }}">
             @error('keterangan')<div class="text-red-500 text-sm">{{ $message }}</div>@enderror
+            <p class="text-sm text-gray-600 mt-1">
+                <span class="italic">*Isi keterangan dengan nama anda (yang mengubah).</span>
+            </p>
         </div>
         <div class="flex justify-end mt-4">
             <a href="{{ route('absensi.index') }}" class="px-4 py-2 bg-gray-300 text-gray-800 rounded mr-2">Kembali</a>

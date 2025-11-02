@@ -57,6 +57,7 @@ class RombelSiswaApiController extends Controller
                 'siswa_nis' => $row->siswa->nis ?? '-',
                 'kelas_nama' => $row->kelas->nama ?? '-',
                 'tahun_ajaran_nama' => $row->tahunAjaran->nama ?? '-',
+                'tahun_ajaran_semester' => $row->tahunAjaran->semester ?? '-',
             ];
         });
 

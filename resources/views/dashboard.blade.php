@@ -23,7 +23,7 @@
 
     <!-- Card untuk Guru -->
     <div x-show="activeView === 'guru'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             <!-- Total Guru -->
             <div @click="selected = selected === 'guru_total' ? null : 'guru_total'"
                  :class="{'ring-2 ring-blue-400': selected === 'guru_total'}"
@@ -92,20 +92,56 @@
                 </table>
             </div>
 
-            <!-- Guru Sakit/Izin -->
+            <!-- Guru Sakit -->
             <div @click="selected = selected === 'guru_sakit' ? null : 'guru_sakit'"
-                 :class="{'ring-2 ring-yellow-400': selected === 'guru_sakit'}"
-                 class="cursor-pointer bg-yellow-100 shadow rounded-lg p-6 text-center flex flex-col items-center hover:ring-2 hover:ring-yellow-400 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 :class="{'ring-2 ring-red-400': selected === 'guru_sakit'}"
+                 class="cursor-pointer bg-red-100 shadow rounded-lg p-6 text-center flex flex-col items-center hover:ring-2 hover:ring-red-400 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                 </svg>
-                <div class="text-3xl font-bold text-yellow-700">{{ $guruSakitIzin ?? 0 }}</div>
-                <div class="mt-2 text-yellow-800">Guru Sakit/Izin</div>
+                <div class="text-3xl font-bold text-red-700">{{ $guruSakit ?? 0 }}</div>
+                <div class="mt-2 text-red-800">Guru Sakit</div>
             </div>
 
-            <!-- Data Guru Sakit/Izin Table -->
+            <!-- Data Guru Sakit Table -->
             <div x-show="selected === 'guru_sakit'" x-transition class="col-span-5 mt-4">
-                <h3 class="text-lg font-bold mb-2 text-yellow-700">Data Guru Sakit/Izin</h3>
+                <h3 class="text-lg font-bold mb-2 text-red-700">Data Guru Sakit</h3>
+                <table class="min-w-full border-2 border-red-400 rounded-lg overflow-hidden shadow border-collapse">
+                    <thead>
+                        <tr class="bg-red-500 text-white border-b-2 border-red-400">
+                            <th class="px-4 py-2">Nama</th>
+                            <th class="px-4 py-2 text-center">NIP</th>
+                            <th class="px-4 py-2 text-center">Status</th>
+                            <th class="px-4 py-2 text-center">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($dataGuruSakit as $row)
+                        <tr class="bg-white border-b border-red-200">
+                            <td class="px-4 py-2">{{ $row->guru->nama ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->guru->nip ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->status }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->keterangan ?? '-' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Guru Izin -->
+            <div @click="selected = selected === 'guru_izin' ? null : 'guru_izin'"
+                 :class="{'ring-2 ring-yellow-400': selected === 'guru_izin'}"
+                 class="cursor-pointer bg-yellow-100 shadow rounded-lg p-6 text-center flex flex-col items-center hover:ring-2 hover:ring-yellow-400 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <div class="text-3xl font-bold text-yellow-700">{{ $guruIzin ?? 0 }}</div>
+                <div class="mt-2 text-yellow-800">Guru Izin</div>
+            </div>
+
+            <!-- Data Guru Izin Table -->
+            <div x-show="selected === 'guru_izin'" x-transition class="col-span-5 mt-4">
+                <h3 class="text-lg font-bold mb-2 text-yellow-700">Data Guru Izin</h3>
                 <table class="min-w-full border-2 border-yellow-400 rounded-lg overflow-hidden shadow border-collapse">
                     <thead>
                         <tr class="bg-yellow-500 text-white border-b-2 border-yellow-400">
@@ -116,7 +152,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($dataGuruSakitIzin as $row)
+                        @foreach($dataGuruIzin as $row)
                         <tr class="bg-white border-b border-yellow-200">
                             <td class="px-4 py-2">{{ $row->guru->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->guru->nip ?? '-' }}</td>
@@ -175,7 +211,7 @@
 
     <!-- Card untuk Siswa -->
     <div x-show="activeView === 'siswa'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
             <!-- Total Siswa -->
             <div @click="selected = selected === 'siswa' ? null : 'siswa'" 
                  :class="{'ring-2 ring-blue-400': selected === 'siswa'}"
@@ -196,6 +232,7 @@
                             <th class="px-4 py-2">Nama</th>
                             <th class="px-4 py-2 text-center">NIS</th>
                             <th class="px-4 py-2 text-center">Kelas</th>
+                            <th class="px-4 py-2 text-center">No. Absen</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -204,6 +241,7 @@
                             <td class="px-4 py-2">{{ $row->siswa->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->kelas->nama ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->nomor_absen ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
@@ -230,6 +268,7 @@
                             <th class="px-4 py-2">Nama</th>
                             <th class="px-4 py-2 text-center">NIS</th>
                             <th class="px-4 py-2 text-center">Kelas</th>
+                            <th class="px-4 py-2 text-center">No. Absen</th>
                             <th class="px-4 py-2 text-center">Tanggal</th>
                             <th class="px-4 py-2 text-center">Jam</th>
                         </tr>
@@ -237,31 +276,72 @@
                     <tbody>
                         @foreach($dataHadir as $row)
                         <tr class="bg-white border-b border-green-200">
-                            <td class="px-4 py-2">{{ $row->siswa->nama ?? '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->rombel && $row->rombel->kelas ? $row->rombel->kelas->nama : '-' }}</td>
+                            <td class="px-4 py-2">{{ $row->rombel->siswa->nama ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->siswa->nis ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->kelas->nama ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->nomor_absen ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? ($row->jam_masuk ? $row->jam_masuk : '-') }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
                 </table>
             </div>
 
-            <!-- Sakit/Izin -->
-            <div @click="selected = selected === 'sakitizin' ? null : 'sakitizin'"
-                 :class="{'ring-2 ring-yellow-400': selected === 'sakitizin'}"
-                 class="cursor-pointer bg-yellow-100 shadow rounded-lg p-6 text-center flex flex-col items-center hover:ring-2 hover:ring-yellow-400 transition">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <!-- Sakit -->
+            <div @click="selected = selected === 'sakit' ? null : 'sakit'"
+                 :class="{'ring-2 ring-red-400': selected === 'sakit'}"
+                 class="cursor-pointer bg-red-100 shadow rounded-lg p-6 text-center flex flex-col items-center hover:ring-2 hover:ring-red-400 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M12 2a10 10 0 100 20 10 10 0 000-20z" />
                 </svg>
-                <div class="text-3xl font-bold text-yellow-700">{{ $jumlahSakitIzin ?? 0 }}</div>
-                <div class="mt-2 text-yellow-800">Sakit/Izin</div>
+                <div class="text-3xl font-bold text-red-700">{{ $jumlahSakit ?? 0 }}</div>
+                <div class="mt-2 text-red-800">Sakit</div>
             </div>
 
-            <!-- Data Sakit/Izin Table -->
-            <div x-show="selected === 'sakitizin'" x-transition class="col-span-5 mt-4">
-                <h3 class="text-lg font-bold mb-2 text-yellow-700">Data Sakit/Izin</h3>
+            <!-- Data Sakit Table -->
+                        <div x-show="selected === 'sakit'" x-transition class="col-span-5 mt-4">
+                <h3 class="text-lg font-bold mb-2 text-red-700">Data Sakit</h3>
+                <table class="min-w-full border-2 border-red-400 rounded-lg overflow-hidden shadow border-collapse">
+                    <thead>
+                        <tr class="bg-red-500 text-white border-b-2 border-red-400">
+                            <th class="px-4 py-2">Nama</th>
+                            <th class="px-4 py-2 text-center">NIS</th>
+                            <th class="px-4 py-2 text-center">Kelas</th>
+                            <th class="px-4 py-2 text-center">Tanggal</th>
+                            <th class="px-4 py-2 text-center">Jam</th>
+                            <th class="px-4 py-2 text-center">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($dataSakit as $row)
+                        <tr class="bg-white border-b border-red-200">
+                            <td class="px-4 py-2">{{ $row->rombel->siswa->nama ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->siswa->nis ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->kelas->nama ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->keterangan ?? '-' }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Izin -->
+            <div @click="selected = selected === 'izin' ? null : 'izin'"
+                 :class="{'ring-2 ring-yellow-400': selected === 'izin'}"
+                 class="cursor-pointer bg-yellow-100 shadow rounded-lg p-6 text-center flex flex-col items-center hover:ring-2 hover:ring-yellow-400 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <div class="text-3xl font-bold text-yellow-700">{{ $jumlahIzin ?? 0 }}</div>
+                <div class="mt-2 text-yellow-800">Izin</div>
+            </div>
+
+            <!-- Data Izin Table -->
+            <div x-show="selected === 'izin'" x-transition class="col-span-5 mt-4">
+                <h3 class="text-lg font-bold mb-2 text-yellow-700">Data Izin</h3>
                 <table class="min-w-full border-2 border-yellow-400 rounded-lg overflow-hidden shadow border-collapse">
                     <thead>
                         <tr class="bg-yellow-500 text-white border-b-2 border-yellow-400">
@@ -274,11 +354,11 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($dataSakitIzin as $row)
+                        @foreach($dataIzin as $row)
                         <tr class="bg-white border-b border-yellow-200">
-                            <td class="px-4 py-2">{{ $row->siswa->nama ?? '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->siswa->rombel && $row->siswa->rombel->kelas ? $row->siswa->rombel->kelas->nama : '-' }}</td>
+                            <td class="px-4 py-2">{{ $row->rombel->siswa->nama ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->siswa->nis ?? '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->kelas->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->keterangan ?? '-' }}</td>
@@ -287,6 +367,8 @@
                     </tbody>
                 </table>
             </div>
+
+            <!-- Tanpa Keterangan -->
 
             <!-- Tanpa Keterangan -->
             <div @click="selected = selected === 'tanpaket' ? null : 'tanpaket'"
@@ -317,7 +399,7 @@
                         <tr class="bg-white border-b border-red-200">
                             <td class="px-4 py-2">{{ $row->siswa->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->siswa->nis ?? '-' }}</td>
-                            <td class="px-4 py-2 text-center">{{ $row->siswa->rombel && $row->siswa->rombel->kelas ? $row->siswa->rombel->kelas->nama : '-' }}</td>
+                            <td class="px-4 py-2 text-center">{{ $row->rombel->kelas->nama ?? '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
                             <td class="px-4 py-2 text-center">{{ $row->jam_masuk ?? '-' }}</td>
                         </tr>
