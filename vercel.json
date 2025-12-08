@@ -2,7 +2,7 @@
     "version": 2,
     "framework": null,
     "functions": {
-        "api/index.php": { "runtime": "vercel-php@0.6.0" }
+        "api/index.php": { "runtime": "vercel-php@0.7.2" }
     },
     "routes": [
         {
@@ -10,8 +10,16 @@
             "dest": "/public/build/$1"
         },
         {
-            "src": "/favicon.ico",
-            "dest": "/public/favicon.ico"
+            "src": "/storage/(.*)",
+            "dest": "/public/storage/$1"
+        },
+        {
+            "src": "/logo.png", 
+            "dest": "/public/logo.png"
+        },
+        {
+            "src": "/(.*).(png|jpg|jpeg|gif|svg|ico)",
+            "dest": "/public/$1.$2"
         },
         {
             "src": "/(.*)",
@@ -21,7 +29,14 @@
     "env": {
         "APP_ENV": "production",
         "APP_DEBUG": "true",
-        "APP_URL": "https://vercel-siprediv2.vercel.app",
+        "APP_URL": "",
+        "APP_KEY": "base64:FzOMr/fYauS5DU42YU0RGOMUXEPPg8boRTzsurNZH7U=",
+        "DB_CONNECTION": "mysql",
+        "DB_HOST": "uigyku.h.filess.io",
+        "DB_PORT": "61030",
+        "DB_DATABASE": "vercel_siprediv2_salequite",
+        "DB_USERNAME": "vercel_siprediv2_salequite",
+        "DB_PASSWORD": "ddf960aa7322be54d34502c8c9a82de6d7c71d8b",
         "APP_CONFIG_CACHE": "/tmp/config.php",
         "APP_EVENTS_CACHE": "/tmp/events.php",
         "APP_PACKAGES_CACHE": "/tmp/packages.php",
