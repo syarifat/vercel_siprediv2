@@ -68,7 +68,7 @@
                     </a>
                 @endif
                 <a href="#features" class="px-8 py-4 bg-white text-slate-700 border border-slate-200 font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-colors w-full sm:w-auto">
-                    Lihat Cara Kerja
+                    Lihat Fitur
                 </a>
             </div>
         </div>
@@ -97,70 +97,6 @@
                     <h3 class="text-xl font-bold text-slate-900 mb-3">Monitoring Dashboard</h3>
                     <p class="text-slate-600 leading-relaxed">Pantau statistik kehadiran harian, rekapitulasi bulanan, dan data pelanggaran siswa melalui dashboard web yang interaktif.</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="py-20 bg-slate-50 border-t border-slate-200">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-16">
-                <span class="text-cyan-600 font-semibold tracking-wider uppercase text-sm">Di Balik Layar</span>
-                <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mt-2 mb-4">Our Great Team</h2>
-                <p class="text-slate-600 max-w-2xl mx-auto">Tim solid yang berdedikasi membangun sistem monitoring pendidikan terbaik.</p>
-            </div>
-
-            <div class="flex flex-wrap justify-center gap-6">
-                
-                <div class="group relative w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(20%-1.5rem)] min-w-[240px] h-[380px] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer">
-                    <img src="/img/member1.jpg" alt="Member 1" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80'">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                    <div class="absolute bottom-0 left-0 w-full p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <span class="inline-block px-3 py-1 mb-2 text-xs font-bold text-white bg-cyan-600 rounded-full tracking-wide">LEADERSHIP</span>
-                        <h4 class="text-2xl font-bold text-white mb-1">Syarif Ahsani Taqwim</h4>
-                        <p class="text-cyan-200 font-medium">Project Manager</p>
-                    </div>
-                </div>
-
-                <div class="group relative w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(20%-1.5rem)] min-w-[240px] h-[380px] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer">
-                    <img src="/img/member2.jpg" alt="Member 2" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1573496359-136d475583dc?auto=format&fit=crop&w=800&q=80'">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                    <div class="absolute bottom-0 left-0 w-full p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <div class="h-1 w-12 bg-cyan-500 mb-3 rounded-full"></div>
-                        <h4 class="text-xl font-bold text-white mb-1">Ahmad Hakiki Nugroho</h4>
-                        <p class="text-slate-300 font-medium text-sm">IoT Specialist</p>
-                    </div>
-                </div>
-
-                <div class="group relative w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(20%-1.5rem)] min-w-[240px] h-[380px] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer">
-                    <img src="/img/member3.jpg" alt="Member 3" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=800&q=80'">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                    <div class="absolute bottom-0 left-0 w-full p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <div class="h-1 w-12 bg-cyan-500 mb-3 rounded-full"></div>
-                        <h4 class="text-xl font-bold text-white mb-1">Andina Septiana Putri</h4>
-                        <p class="text-slate-300 font-medium text-sm">Fullstack Developer</p>
-                    </div>
-                </div>
-
-                <div class="group relative w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(20%-1.5rem)] min-w-[240px] h-[380px] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer">
-                    <img src="/img/member4.jpg" alt="Member 4" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80'">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                    <div class="absolute bottom-0 left-0 w-full p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <div class="h-1 w-12 bg-cyan-500 mb-3 rounded-full"></div>
-                        <h4 class="text-xl font-bold text-white mb-1">Widi Putri Audy</h4>
-                        <p class="text-slate-300 font-medium text-sm">Data Analyst</p>
-                    </div>
-                </div>
-
-                <div class="group relative w-full sm:w-[calc(50%-1.5rem)] lg:w-[calc(20%-1.5rem)] min-w-[240px] h-[380px] rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 cursor-pointer">
-                    <img src="/img/member5.jpg" alt="Member 5" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=800&q=80'">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
-                    <div class="absolute bottom-0 left-0 w-full p-6 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                        <div class="h-1 w-12 bg-cyan-500 mb-3 rounded-full"></div>
-                        <h4 class="text-xl font-bold text-white mb-1">Yosanda Nurfriyandika</h4>
-                        <p class="text-slate-300 font-medium text-sm">Tech Specialist</p>
-                    </div>
-                </div>
-
             </div>
         </div>
     </section>
