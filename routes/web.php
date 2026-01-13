@@ -76,4 +76,3 @@ Route::get('/absensi/export/{type}', [App\Http\Controllers\RekapAbsensiControlle
 Route::get('/rekap/absensi-guru/export/{type}', [App\Http\Controllers\RekapAbsensiGuruController::class, 'export'])->name('rekap.absensi-guru.export');
 #testing export rombel siswa
 Route::get('/rombel_siswa/export/pdf', [App\Http\Controllers\RombelSiswaController::class, 'exportPdf'])->name('rombel_siswa.export.pdf');
-
