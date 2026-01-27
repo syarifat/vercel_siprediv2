@@ -125,7 +125,13 @@
 
         console.log("Fetching URL:", url); // Debugging
 
-        fetch(url)
+        fetch(url, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',  // <--- INI PENTING
+                'X-Requested-With': 'XMLHttpRequest' // Agar Laravel tahu ini Ajax
+                }
+            })
             .then(res => {
                 // Cek status HTTP
                 if (!res.ok) {
