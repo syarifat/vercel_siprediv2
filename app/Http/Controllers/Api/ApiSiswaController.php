@@ -4,31 +4,61 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\RombelSiswa;
+use App\Models\Siswa;
 
 class ApiSiswaController extends Controller
 {
-    // Mengambil data siswa (via rombel) untuk plotting & filter
     public function index(Request $request)
     {
-        $tahunId = session('tahun_ajaran_id');
-        $query = RombelSiswa::with(['siswa', 'kelas'])->where('tahun_ajaran_id', $tahunId);
-        
-        if($request->kelas_id) {
-            $query->where('kelas_id', $request->kelas_id);
+        $query = Siswa::query();
+
+        // 1. Filter Pencarian (Nama / NIS)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('nis', 'like', "%{$search}%");
+            });
         }
-        
-        // Return data yang dibutuhkan frontend
-        $data = $query->orderBy('nomor_absen')->get()->map(function($r){
+
+        // 2. Filter Kelas (Opsional, via relasi rombel)
+        // Hanya jika ingin mencari siswa di kelas tertentu
+        if ($request->filled('kelas_id')) {
+            $tahunId = session('tahun_ajaran_id');
+            $query->whereHas('rombel', function($q) use ($request, $tahunId) {
+                $q->where('kelas_id', $request->kelas_id);
+                if ($tahunId) {
+                    $q->where('tahun_ajaran_id', $tahunId);
+                }
+            });
+        }
+
+        // Ambil data (Limit jika tidak ada search spesifik agar ringan)
+        if (!$request->filled('search')) {
+            $query->limit(50);
+        }
+
+        $data = $query->orderBy('nama')->get()->map(function($siswa) {
+            // Ambil info kelas aktif siswa ini (jika ada)
+            // Mengambil rombel terakhir yang aktif (tahun ajaran session)
+            $tahunId = session('tahun_ajaran_id');
+            $rombel = $siswa->rombel()
+                ->when($tahunId, fn($q) => $q->where('tahun_ajaran_id', $tahunId))
+                ->with('kelas')
+                ->first();
+
             return [
-                'id' => $r->siswa->id, // ID Siswa
-                'rombel_id' => $r->id, 
-                'nama' => $r->siswa->nama,
-                'nis' => $r->siswa->nis,
-                'kelas_nama' => $r->kelas->nama ?? '-',
-                'nomor_absen' => $r->nomor_absen
+                'id' => $siswa->id,
+                'nama' => $siswa->nama,
+                'nis' => $siswa->nis,
+                'jenis_kelamin' => $siswa->jenis_kelamin,
+                'no_hp_ortu' => $siswa->no_hp_ortu,
+                'status' => $siswa->status,
+                'kelas_nama' => $rombel ? $rombel->kelas->nama : '-', // Tampilkan kelas jika ada
+                'nomor_absen' => $rombel ? $rombel->nomor_absen : '-'
             ];
         });
+
         return response()->json($data);
     }
 }
