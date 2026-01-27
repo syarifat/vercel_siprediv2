@@ -10,40 +10,25 @@ class ApiSiswaController extends Controller
 {
     public function index(Request $request)
     {
-        // Query langsung ke tabel 'siswa' tanpa join/relation apapun
+        // 1. Mulai Query Siswa
         $query = Siswa::query();
 
-        // Filter Pencarian (Nama / NIS)
-        if ($request->filled('search')) {
+        // 2. Cek apakah ada input 'search' dari frontend
+        if ($request->has('search') && $request->search != '') {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
-                $q->where('nama', 'like', "%{$search}%")
-                  ->orWhere('nis', 'like', "%{$search}%");
-            });
-        }
-
-        // Limit data (Wajib ada biar load awal tidak berat)
-        if (!$request->filled('search')) {
+            // Filter berdasarkan nama atau nis
+            $query->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('nis', 'like', '%' . $search . '%');
+        } else {
+            // Jika tidak ada search, limit 50 biar tidak berat load semua
             $query->limit(50);
         }
 
-        // Ambil data (Hanya field yang ada di tabel siswa)
-        $data = $query->orderBy('nama')->get()->map(function($siswa) {
-            return [
-                'id' => $siswa->id,
-                'nama' => $siswa->nama,
-                'nis' => $siswa->nis,
-                'jenis_kelamin' => $siswa->jenis_kelamin,
-                'no_hp_ortu' => $siswa->no_hp_ortu,
-                'status' => $siswa->status,
-                
-                // Kita set null/strip karena di tabel siswa murni tidak ada data ini
-                // Frontend akan otomatis menghandle nilai null ini
-                'kelas_nama' => null, 
-                'nomor_absen' => null
-            ];
-        });
+        // 3. Ambil datanya (Get) dan urutkan
+        $siswa = $query->orderBy('nama', 'asc')->get();
 
-        return response()->json($data);
+        // 4. Return langsung datanya (JSON)
+        // Kita return Array langsung agar cocok dengan script JS di view siswa.index
+        return response()->json($siswa);
     }
 }
