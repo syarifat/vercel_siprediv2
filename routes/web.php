@@ -6,7 +6,6 @@ use Illuminate\Http\Request;
 // --- IMPORT SEMUA CONTROLLER ---
 use App\Http\Controllers\{
     DashboardController,
-    ProfileController,
     SiswaController,
     GuruController,
     KelasController,
@@ -55,10 +54,10 @@ Route::middleware(['auth', 'web'])->group(function () {
 
     // --- PROFILE ---
     // Tambahan: profile.index (View Profil)
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index'); 
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index'); 
+    // Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    // Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    // Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // --- MASTER DATA (CRUD) ---
     Route::resource('guru', GuruController::class);
@@ -74,10 +73,10 @@ Route::middleware(['auth', 'web'])->group(function () {
     })->name('tahun_ajaran.set');
 
     // --- ROMBEL SISWA ---
-    Route::resource('rombel_siswa', RombelSiswaController::class);
-    Route::post('/rombel_siswa/mass_store', [RombelSiswaController::class, 'mass_store'])->name('rombel_siswa.mass_store');
-    Route::post('/rombel_siswa/ganti-kelas-massal', [RombelSiswaController::class, 'gantiKelasMassal'])->name('rombel_siswa.ganti_kelas_massal');
-    Route::get('/rombel_siswa/export/pdf', [RombelSiswaController::class, 'exportPdf'])->name('rombel_siswa.export.pdf');
+    // Route::resource('rombel_siswa', RombelSiswaController::class);
+    // Route::post('/rombel_siswa/mass_store', [RombelSiswaController::class, 'mass_store'])->name('rombel_siswa.mass_store');
+    // Route::post('/rombel_siswa/ganti-kelas-massal', [RombelSiswaController::class, 'gantiKelasMassal'])->name('rombel_siswa.ganti_kelas_massal');
+    // Route::get('/rombel_siswa/export/pdf', [RombelSiswaController::class, 'exportPdf'])->name('rombel_siswa.export.pdf');
 
     // --- ABSENSI SISWA ---
     Route::resource('absensi', AbsensiController::class);
