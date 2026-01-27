@@ -2,11 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Absensi extends Model
 {
-    // alias untuk compatibilitas: gunakan tabel absensi_siswa
+    use HasFactory;
+
+    // Sesuai SQL: absensi_siswa
     protected $table = 'absensi_siswa';
 
     protected $fillable = [
@@ -22,10 +25,8 @@ class Absensi extends Model
     {
         return $this->belongsTo(RombelSiswa::class, 'rombel_siswa_id');
     }
-
-    /**
-     * Compatibility accessor so code can use $absensi->siswa
-     */
+    
+    // Akses cepat ke siswa via rombel
     public function getSiswaAttribute()
     {
         return $this->rombel ? $this->rombel->siswa : null;

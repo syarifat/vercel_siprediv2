@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,9 +11,7 @@ class Kelas extends Model
 
     protected $table = 'kelas';
 
-    protected $fillable = [
-        'nama',
-    ];
+    protected $fillable = ['nama'];
 
     public function rombel()
     {

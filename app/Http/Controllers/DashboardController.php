@@ -8,127 +8,93 @@ use App\Models\TahunAjaran;
 use App\Models\Absensi;
 use App\Models\AbsensiGuru;
 use App\Models\Guru;
+use App\Models\RombelSiswa; // Tambahkan ini
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        $today = now('Asia/Jakarta')->toDateString();
-        $tahunAjaranId = session('tahun_ajaran_id');
+        $today = now()->toDateString(); // Default Timezone Server
+        
+        // Ambil ID tahun ajaran aktif jika session kosong
+        $tahunAjaranId = session('tahun_ajaran_id') ?? TahunAjaran::where('aktif', true)->value('id');
+        
+        // Jika masih null (belum ada tahun ajaran aktif), ambil yang terakhir
+        if (!$tahunAjaranId) {
+            $tahunAjaranId = TahunAjaran::latest('id')->value('id');
+        }
+
+        // Simpan ke session agar persisten
+        if (!session('tahun_ajaran_id') && $tahunAjaranId) {
+            session(['tahun_ajaran_id' => $tahunAjaranId]);
+        }
+
         $tahunAjaran = TahunAjaran::find($tahunAjaranId);
 
-        $dataSiswaAktif = \App\Models\RombelSiswa::with(['siswa', 'kelas', 'tahunAjaran'])
+        // --- DATA SISWA ---
+        // Siswa Aktif = Siswa yang punya rombel di tahun ajaran ini
+        $dataSiswaAktif = RombelSiswa::with(['siswa', 'kelas'])
             ->where('tahun_ajaran_id', $tahunAjaranId)
             ->get();
         $jumlahSiswa = $dataSiswaAktif->count();
 
-        $dataHadir = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
-            ->where('status', 'Hadir')
+        // Query Absensi Hari Ini (Hanya untuk siswa di tahun ajaran ini)
+        $absensiHariIni = Absensi::with(['rombel.siswa', 'rombel.kelas'])
             ->whereDate('tanggal', $today)
             ->whereHas('rombel', function($q) use ($tahunAjaranId) {
                 $q->where('tahun_ajaran_id', $tahunAjaranId);
             })
             ->get();
 
-        $dataSakit = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
-            ->where('status', 'Sakit')
-            ->whereDate('tanggal', $today)
-            ->whereHas('rombel', function($q) use ($tahunAjaranId) {
-                $q->where('tahun_ajaran_id', $tahunAjaranId);
-            })
-            ->get();
-
-        $dataIzin = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
-            ->where('status', 'Izin')
-            ->whereDate('tanggal', $today)
-            ->whereHas('rombel', function($q) use ($tahunAjaranId) {
-                $q->where('tahun_ajaran_id', $tahunAjaranId);
-            })
-            ->get();
-
-        $dataTanpaKeterangan = \App\Models\Absensi::with(['rombel.siswa', 'rombel.kelas'])
-            ->whereIn('status', ['Tanpa Keterangan', 'Alpha'])
-            ->whereDate('tanggal', $today)
-            ->whereHas('rombel', function($q) use ($tahunAjaranId) {
-                $q->where('tahun_ajaran_id', $tahunAjaranId);
-            })
-            ->get();
-
-        // Belum Hadir: ambil dari rombel_siswa yang tidak punya absensi hari ini
-        $dataBelumHadir = \App\Models\RombelSiswa::with(['siswa', 'kelas'])
-            ->where('tahun_ajaran_id', $tahunAjaranId)
-            ->whereDoesntHave('absensi', function($q) use ($today) {
-                $q->whereDate('tanggal', $today);
-            })->get();
+        // Filter Collection (Lebih cepat daripada query ulang berkali-kali)
+        $dataHadir = $absensiHariIni->where('status', 'hadir');
+        $dataSakit = $absensiHariIni->where('status', 'sakit');
+        $dataIzin = $absensiHariIni->where('status', 'izin');
+        $dataTanpaKeterangan = $absensiHariIni->whereIn('status', ['alpha', 'alfa', 'tanpa keterangan']);
 
         $jumlahHadir = $dataHadir->count();
         $jumlahSakit = $dataSakit->count();
         $jumlahIzin = $dataIzin->count();
         $jumlahTanpaKeterangan = $dataTanpaKeterangan->count();
+
+        // Belum Hadir = Total Siswa - (Hadir + Sakit + Izin + Alpha)
+        // Atau lebih akurat: Siswa di rombel yg belum punya record absen hari ini
+        $sudahAbsenIds = $absensiHariIni->pluck('rombel_siswa_id')->toArray();
+        $dataBelumHadir = $dataSiswaAktif->whereNotIn('id', $sudahAbsenIds);
         $jumlahBelumHadir = $dataBelumHadir->count();
 
-        // Data Guru
-        $dataAllGuru = Guru::all();
+
+        // --- DATA GURU ---
+        $dataAllGuru = Guru::where('status', 'aktif')->get();
         $totalGuru = $dataAllGuru->count();
         
-        // Data Guru Hadir
-        $dataGuruHadir = AbsensiGuru::with('guru')
-            ->where('status', 'Hadir')
+        $absensiGuruHariIni = AbsensiGuru::with('guru')
             ->whereDate('tanggal', $today)
             ->where('tahun_ajaran_id', $tahunAjaranId)
             ->get();
-        $guruHadir = $dataGuruHadir->count();
-        
-        // Data Guru Sakit
-        $dataGuruSakit = AbsensiGuru::with('guru')
-            ->where('status', 'Sakit')
-            ->whereDate('tanggal', $today)
-            ->where('tahun_ajaran_id', $tahunAjaranId)
-            ->get();
-        $guruSakit = $dataGuruSakit->count();
 
-        // Data Guru Izin
-        $dataGuruIzin = AbsensiGuru::with('guru')
-            ->where('status', 'Izin')
-            ->whereDate('tanggal', $today)
-            ->where('tahun_ajaran_id', $tahunAjaranId)
-            ->get();
+        $dataGuruHadir = $absensiGuruHariIni->where('status', 'hadir');
+        $dataGuruSakit = $absensiGuruHariIni->where('status', 'sakit');
+        $dataGuruIzin = $absensiGuruHariIni->where('status', 'izin');
+        $dataGuruTanpaKet = $absensiGuruHariIni->whereIn('status', ['alpha', 'alfa']);
+
+        $guruHadir = $dataGuruHadir->count();
+        $guruSakit = $dataGuruSakit->count();
         $guruIzin = $dataGuruIzin->count();
-        
-        // Data Guru Tanpa Keterangan
-        $dataGuruTanpaKet = AbsensiGuru::with('guru')
-            ->where('status', 'Tanpa Keterangan')
-            ->whereDate('tanggal', $today)
-            ->where('tahun_ajaran_id', $tahunAjaranId)
-            ->get();
         $guruTanpaKet = $dataGuruTanpaKet->count();
-        $guruBelumHadir = $totalGuru - ($guruHadir + $guruSakit + $guruIzin + $guruTanpaKet);
+        
+        // Guru Belum Hadir
+        $sudahAbsenGuruIds = $absensiGuruHariIni->pluck('guru_id')->toArray();
+        $guruBelumHadir = $totalGuru - count($sudahAbsenGuruIds);
 
         return view('dashboard', compact(
             'tahunAjaran',
-            'dataAllGuru',
-            'dataSiswaAktif',
-            'jumlahSiswa',
-            'dataHadir',
-            'jumlahHadir',
-            'dataSakit',
-            'jumlahSakit',
-            'dataIzin',
-            'jumlahIzin',
-            'dataTanpaKeterangan',
-            'jumlahTanpaKeterangan',
-            'dataBelumHadir',
-            'jumlahBelumHadir',
-            'totalGuru',
-            'guruHadir',
-            'dataGuruHadir',
-            'guruSakit',
-            'dataGuruSakit',
-            'guruIzin',
-            'dataGuruIzin',
-            'guruTanpaKet',
-            'dataGuruTanpaKet',
-            'guruBelumHadir'
+            // Siswa
+            'jumlahSiswa', 'jumlahHadir', 'jumlahSakit', 'jumlahIzin', 'jumlahTanpaKeterangan', 'jumlahBelumHadir',
+            'dataSiswaAktif', 'dataHadir', 'dataSakit', 'dataIzin', 'dataTanpaKeterangan', 'dataBelumHadir',
+            // Guru
+            'totalGuru', 'guruHadir', 'guruSakit', 'guruIzin', 'guruTanpaKet', 'guruBelumHadir',
+            'dataAllGuru', 'dataGuruHadir', 'dataGuruSakit', 'dataGuruIzin', 'dataGuruTanpaKet'
         ));
     }
 }

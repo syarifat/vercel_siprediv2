@@ -9,17 +9,21 @@ use App\Models\TahunAjaran;
 
 class SiswaController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $siswa = Siswa::orderBy('nama')->paginate(20);
+        $query = Siswa::query();
+        if ($request->filled('search')) {
+            $query->where('nama', 'like', '%' . $request->search . '%')
+                  ->orWhere('nis', 'like', '%' . $request->search . '%');
+        }
+        $siswa = $query->orderBy('nama')->paginate(20);
         return view('siswa.index', compact('siswa'));
     }
 
     public function create()
     {
-        $kelas = Kelas::orderBy('nama')->get();
-        $tahun = TahunAjaran::orderByDesc('id')->get();
-        return view('siswa.create', compact('kelas','tahun'));
+        // Dropdown data (opsional, jika view create butuh)
+        return view('siswa.create');
     }
 
     public function store(Request $request)
@@ -33,16 +37,13 @@ class SiswaController extends Controller
             'status' => 'required|in:aktif,lulus,keluar',
         ]);
 
-        Siswa::create($request->only(['nama','nis','jenis_kelamin','no_hp_ortu','rfid','status']));
-
+        Siswa::create($request->all());
         return redirect()->route('siswa.index')->with('success', 'Siswa berhasil ditambahkan');
     }
 
     public function edit(Siswa $siswa)
     {
-        $kelas = Kelas::orderBy('nama')->get();
-        $tahun = TahunAjaran::orderByDesc('id')->get();
-        return view('siswa.edit', compact('siswa','kelas','tahun'));
+        return view('siswa.edit', compact('siswa'));
     }
 
     public function update(Request $request, Siswa $siswa)
@@ -56,8 +57,7 @@ class SiswaController extends Controller
             'status' => 'required|in:aktif,lulus,keluar',
         ]);
 
-        $siswa->update($request->only(['nama','nis','jenis_kelamin','no_hp_ortu','rfid','status']));
-
+        $siswa->update($request->all());
         return redirect()->route('siswa.index')->with('success', 'Siswa berhasil diupdate');
     }
 

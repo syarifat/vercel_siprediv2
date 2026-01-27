@@ -26,20 +26,20 @@ class TahunAjaranController extends Controller
             'aktif' => 'nullable|boolean',
         ]);
 
-        $aktif = $request->has('aktif') && $request->boolean('aktif');
+        $aktif = $request->boolean('aktif');
 
+        // Jika diset aktif, nonaktifkan yang lain
         if ($aktif) {
-            // pastikan hanya satu aktif
             TahunAjaran::where('aktif', 1)->update(['aktif' => 0]);
         }
 
         TahunAjaran::create([
             'nama' => $request->nama,
             'semester' => $request->semester,
-            'aktif' => $aktif ? 1 : 0,
+            'aktif' => $aktif,
         ]);
 
-        return redirect()->route('tahun_ajaran.index')->with('success', 'Tahun ajaran berhasil ditambahkan.');
+        return redirect()->route('tahun_ajaran.index')->with('success', 'Tahun ajaran berhasil disimpan.');
     }
 
     public function edit($id)
@@ -50,23 +50,23 @@ class TahunAjaranController extends Controller
 
     public function update(Request $request, $id)
     {
+        $tahunAjaran = TahunAjaran::findOrFail($id);
         $request->validate([
             'nama' => 'required|string|max:100',
             'semester' => 'required|in:Ganjil,Genap',
             'aktif' => 'nullable|boolean',
         ]);
 
-        $tahunAjaran = TahunAjaran::findOrFail($id);
-        $aktif = $request->has('aktif') && $request->boolean('aktif');
+        $aktif = $request->boolean('aktif');
 
         if ($aktif) {
-            TahunAjaran::where('aktif', 1)->where('id', '!=', $tahunAjaran->id)->update(['aktif' => 0]);
+            TahunAjaran::where('aktif', 1)->where('id', '!=', $id)->update(['aktif' => 0]);
         }
 
         $tahunAjaran->update([
             'nama' => $request->nama,
             'semester' => $request->semester,
-            'aktif' => $aktif ? 1 : 0,
+            'aktif' => $aktif,
         ]);
 
         return redirect()->route('tahun_ajaran.index')->with('success', 'Tahun ajaran berhasil diupdate.');
@@ -75,12 +75,9 @@ class TahunAjaranController extends Controller
     public function destroy($id)
     {
         $tahunAjaran = TahunAjaran::findOrFail($id);
-
-        // optionally prevent deleting active tahun ajaran
         if ($tahunAjaran->aktif) {
-            return redirect()->route('tahun_ajaran.index')->with('error', 'Tidak bisa menghapus tahun ajaran yang aktif.');
+            return redirect()->route('tahun_ajaran.index')->with('error', 'Tidak bisa menghapus tahun ajaran aktif.');
         }
-
         $tahunAjaran->delete();
         return redirect()->route('tahun_ajaran.index')->with('success', 'Tahun ajaran berhasil dihapus.');
     }

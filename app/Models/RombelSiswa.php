@@ -35,6 +35,6 @@ class RombelSiswa extends Model
 
     public function absensi()
     {
-        return $this->hasMany(AbsensiSiswa::class, 'rombel_siswa_id');
+        return $this->hasMany(Absensi::class, 'rombel_siswa_id');
     }
 }

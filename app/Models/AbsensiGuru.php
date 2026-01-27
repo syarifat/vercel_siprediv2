@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -17,11 +18,7 @@ class AbsensiGuru extends Model
         'jam_pulang',
         'status',
         'keterangan',
-        'tahun_ajaran_id', // tambahkan ini
-    ];
-
-    protected $casts = [
-        'tanggal' => 'date',
+        'tahun_ajaran_id',
     ];
 
     public function guru()
@@ -29,9 +26,8 @@ class AbsensiGuru extends Model
         return $this->belongsTo(Guru::class, 'guru_id');
     }
 
-    // Tambahkan relasi ke TahunAjaran
     public function tahunAjaran()
     {
-        return $this->belongsTo(TahunAjaran::class);
+        return $this->belongsTo(TahunAjaran::class, 'tahun_ajaran_id');
     }
 }

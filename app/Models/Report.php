@@ -9,6 +9,8 @@ class Report extends Model
 {
     use HasFactory;
 
+    protected $table = 'reports';
+
     protected $fillable = [
         'message_id',
         'target',
@@ -16,5 +18,6 @@ class Report extends Model
         'status',
         'state',
         'stateid',
+        'requestid',
     ];
 }

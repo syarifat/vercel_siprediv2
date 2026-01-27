@@ -3,16 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Kelas;
-use App\Models\TahunAjaran;
-use App\Models\User;
+use App\Models\RombelSiswa;
 use Illuminate\Http\Request;
-use App\Models\RombelSiswa; // <-- ditambahkan untuk pengecekan dependensi
 
 class KelasController extends Controller
 {
     public function index()
     {
-        $kelas = Kelas::all();
+        $kelas = Kelas::orderBy('nama')->get();
         return view('kelas.index', compact('kelas'));
     }
 
@@ -23,9 +21,7 @@ class KelasController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'nama' => 'required|string|max:100',
-        ]);
+        $request->validate(['nama' => 'required|string|max:100']);
         Kelas::create($request->only(['nama']));
         return redirect()->route('kelas.index')->with('success', 'Kelas berhasil ditambahkan.');
     }
@@ -38,9 +34,7 @@ class KelasController extends Controller
 
     public function update(Request $request, $id)
     {
-        $request->validate([
-            'nama' => 'required|string|max:100',
-        ]);
+        $request->validate(['nama' => 'required|string|max:100']);
         $kelas = Kelas::findOrFail($id);
         $kelas->update($request->only(['nama']));
         return redirect()->route('kelas.index')->with('success', 'Kelas berhasil diupdate.');
@@ -49,13 +43,10 @@ class KelasController extends Controller
     public function destroy($id)
     {
         $kelas = Kelas::findOrFail($id);
-
-        // jangan hapus kelas jika ada penempatan rombel_siswa terkait
+        // Validasi: jangan hapus jika ada siswa
         if (RombelSiswa::where('kelas_id', $kelas->id)->exists()) {
-            return redirect()->route('kelas.index')
-                ->with('error', 'Kelas tidak dapat dihapus: masih ada siswa/rombel yang terkait. Hapus/relokasi rombel terlebih dahulu.');
+            return redirect()->route('kelas.index')->with('error', 'Gagal: Masih ada siswa di kelas ini.');
         }
-
         $kelas->delete();
         return redirect()->route('kelas.index')->with('success', 'Kelas berhasil dihapus.');
     }

@@ -1,22 +1,30 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\SiswaController;
-use App\Http\Controllers\KelasController;
-use App\Http\Controllers\TahunAjaranController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\AbsensiController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-use App\Http\Controllers\RombelSiswaController;
-use App\Http\Controllers\GuruController;
-use App\Http\Controllers\AbsensiGuruController;
+use App\Http\Controllers\{
+    DashboardController,
+    ProfileController,
+    SiswaController,
+    GuruController,
+    KelasController,
+    TahunAjaranController,
+    RombelSiswaController,
+    AbsensiController,
+    AbsensiGuruController,
+    UserController,
+    WhatsappController,
+    SetPasswordController,
+    RekapAbsensiController,
+    RekapAbsensiGuruController
+};
 
+// Halaman Depan
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Set tahun ajaran in session (central selector)
+// Set Tahun Ajaran (Session Global)
 Route::post('/set-tahun-ajaran', function (Request $request) {
     $id = $request->input('id');
     if ($id) {
@@ -27,52 +35,47 @@ Route::post('/set-tahun-ajaran', function (Request $request) {
     return response()->json(['ok' => true]);
 })->name('tahun_ajaran.set');
 
-use App\Http\Controllers\DashboardController;
+// --- AREA PUBLIK (Tanpa Login) ---
+Route::get('/set-password', [SetPasswordController::class, 'create'])->name('set-password.create');
+Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set-password.store');
+Route::post('/webhook/fonnte', [WhatsappController::class, 'webhook'])->name('whatsapp.webhook');
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
-
+// --- AREA AUTH (Harus Login) ---
 Route::middleware('auth')->group(function () {
+    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Profile
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
 
-Route::middleware(['auth'])->group(function () {
+    // Resource Controllers (CRUD Standar)
     Route::resource('guru', GuruController::class);
     Route::resource('siswa', SiswaController::class);
-    Route::resource('rombel_siswa', RombelSiswaController::class);
-    Route::resource('absensi', AbsensiController::class);
-    // resource route untuk absensi guru (web) — use underscore URI and route names 'absensi_guru.*'
-    Route::resource('absensi_guru', AbsensiGuruController::class);
     Route::resource('kelas', KelasController::class);
     Route::resource('tahun_ajaran', TahunAjaranController::class);
     Route::resource('user', UserController::class);
+    
+    // Rombel Siswa (Plus Custom Actions)
+    Route::resource('rombel_siswa', RombelSiswaController::class);
     Route::post('/rombel_siswa/mass_store', [RombelSiswaController::class, 'mass_store'])->name('rombel_siswa.mass_store');
     Route::post('/rombel_siswa/ganti-kelas-massal', [RombelSiswaController::class, 'gantiKelasMassal'])->name('rombel_siswa.ganti_kelas_massal');
+    Route::get('/rombel_siswa/export/pdf', [RombelSiswaController::class, 'exportPdf'])->name('rombel_siswa.export.pdf');
+
+    // Absensi Siswa
+    Route::resource('absensi', AbsensiController::class);
+    Route::get('/absensi/export/{type}', [RekapAbsensiController::class, 'export'])->name('absensi.export');
+
+    // Absensi Guru
+    Route::resource('absensi_guru', AbsensiGuruController::class);
+    Route::get('/rekap/absensi-guru/export/{type}', [RekapAbsensiGuruController::class, 'export'])->name('rekap.absensi-guru.export');
+
+    // WhatsApp
+    Route::get('/whatsapp', [WhatsappController::class, 'index'])->name('whatsapp.index');
+    Route::post('/whatsapp/send', [WhatsappController::class, 'send'])->name('whatsapp.send');
+    Route::get('/whatsapp/qr', [WhatsappController::class, 'qr'])->name('whatsapp.qr');
+    Route::get('/whatsapp/report', [WhatsappController::class, 'report'])->name('whatsapp.report');
 });
 
 require __DIR__.'/auth.php';
-
-Route::get('/dashboard', [DashboardController::class, 'index'])->middleware(['auth'])->name('dashboard');
-Route::get('/whatsapp', [\App\Http\Controllers\WhatsappController::class, 'index'])->name('whatsapp.index')->middleware('auth');
-Route::post('/whatsapp/send', [\App\Http\Controllers\WhatsappController::class, 'send'])->name('whatsapp.send')->middleware('auth');
-// Route for exporting absensi (keperluan umum). Use RekapAbsensiController for class/month rekap exports below.
-Route::get('/absensi_guru/export/{type}', [\App\Http\Controllers\AbsensiGuruController::class, 'export'])->name('absensi_guru.export');
-Route::get('/whatsapp/status', [\App\Http\Controllers\WhatsappController::class, 'status'])->name('whatsapp.status');
-Route::get('/whatsapp/qr', [\App\Http\Controllers\WhatsappController::class, 'qr'])->name('whatsapp.qr');
-Route::post('/webhook/fonnte', [\App\Http\Controllers\WhatsappController::class, 'webhook'])->name('whatsapp.webhook');
-Route::get('/whatsapp/report', [\App\Http\Controllers\WhatsappController::class, 'report'])->name('whatsapp.report')->middleware('auth');
-Route::get('/profile', [ProfileController::class, 'index'])->middleware('auth')->name('profile.index');
-Route::get('/profile/edit', [ProfileController::class, 'edit'])->middleware('auth')->name('profile.edit');
-use App\Http\Controllers\SetPasswordController;
-// Set Password Guru (tanpa middleware auth, agar guru bisa akses langsung)
-Route::get('/set-password', [SetPasswordController::class, 'create'])->name('set-password.create');
-Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set-password.store');
-
-#testing export absensi
-Route::get('/absensi/export/{type}', [App\Http\Controllers\RekapAbsensiController::class, 'export'])->name('absensi.export');
-Route::get('/rekap/absensi-guru/export/{type}', [App\Http\Controllers\RekapAbsensiGuruController::class, 'export'])->name('rekap.absensi-guru.export');
-#testing export rombel siswa
-Route::get('/rombel_siswa/export/pdf', [App\Http\Controllers\RombelSiswaController::class, 'exportPdf'])->name('rombel_siswa.export.pdf');

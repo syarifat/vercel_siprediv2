@@ -28,8 +28,7 @@ class GuruController extends Controller
             'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        Guru::create($request->only(['nama','nip','rfid','no_hp','status']));
-
+        Guru::create($request->all());
         return redirect()->route('guru.index')->with('success', 'Guru berhasil ditambahkan.');
     }
 
@@ -42,7 +41,6 @@ class GuruController extends Controller
     public function update(Request $request, $id)
     {
         $guru = Guru::findOrFail($id);
-
         $request->validate([
             'nama' => 'required|string|max:100',
             'nip' => 'nullable|string|max:50',
@@ -51,8 +49,7 @@ class GuruController extends Controller
             'status' => 'required|in:aktif,nonaktif',
         ]);
 
-        $guru->update($request->only(['nama','nip','rfid','no_hp','status']));
-
+        $guru->update($request->all());
         return redirect()->route('guru.index')->with('success', 'Guru berhasil diupdate.');
     }
 

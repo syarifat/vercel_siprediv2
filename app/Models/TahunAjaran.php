@@ -11,11 +11,7 @@ class TahunAjaran extends Model
 
     protected $table = 'tahun_ajaran';
 
-    protected $fillable = [
-        'nama',
-        'semester',
-        'aktif',
-    ];
+    protected $fillable = ['nama', 'semester', 'aktif'];
 
     protected $casts = [
         'aktif' => 'boolean',

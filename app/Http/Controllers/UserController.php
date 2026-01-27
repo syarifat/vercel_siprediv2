@@ -11,12 +11,6 @@ class UserController extends Controller
     public function index()
     {
         $users = User::orderBy('username')->get();
-        // Normalize any legacy 'superadmin' role to 'admin' for display/logic
-        $users->each(function($u) {
-            if ($u->role === 'superadmin') {
-                $u->role = 'admin';
-            }
-        });
         return view('user.index', compact('users'));
     }
 
@@ -45,17 +39,12 @@ class UserController extends Controller
     public function edit($id)
     {
         $user = User::findOrFail($id);
-        // normalize legacy role value so edit form shows 'admin' instead of 'superadmin'
-        if ($user->role === 'superadmin') {
-            $user->role = 'admin';
-        }
         return view('user.edit', compact('user'));
     }
 
     public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
-
         $request->validate([
             'username' => 'required|string|max:100|unique:users,username,' . $user->id,
             'password' => 'nullable|string|min:6|confirmed',
@@ -72,13 +61,15 @@ class UserController extends Controller
         }
 
         $user->update($data);
-
         return redirect()->route('user.index')->with('success', 'User berhasil diupdate.');
     }
 
     public function destroy($id)
     {
         $user = User::findOrFail($id);
+        if ($user->id === auth()->id()) {
+            return redirect()->route('user.index')->with('error', 'Tidak bisa menghapus akun sendiri.');
+        }
         $user->delete();
         return redirect()->route('user.index')->with('success', 'User berhasil dihapus.');
     }
