@@ -117,80 +117,108 @@
 
 @section('scripts')
 <script>
-    // Pass PHP variable to JS
     const isGuru = @json($isGuru);
 
     function fetchSiswa() {
         const search = document.getElementById('search').value;
-        fetch(`/api/siswa?search=${encodeURIComponent(search)}`)
-            .then(res => res.json())
-            .then(data => {
-                let tbody = '';
-                if(data.length === 0) {
-                    tbody = `<tr><td colspan="${isGuru ? 5 : 6}" class="px-6 py-10 text-center text-gray-500">Data tidak ditemukan.</td></tr>`;
-                } else {
-                    data.forEach((row, i) => {
-                        const nomor = i + 1;
-                        // Logic Label Jenis Kelamin
-                        const jkClass = row.jenis_kelamin == 'L' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800';
-                        
-                        // Logic Label Status
-                        let statusHtml = '';
-                        if(row.status == 'aktif') statusHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>';
-                        else if(row.status == 'lulus') statusHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Lulus</span>';
-                        else statusHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Keluar</span>';
+        const url = `/api/siswa?search=${encodeURIComponent(search)}`;
 
-                        // Logic Tombol Aksi
-                        let actionHtml = '';
-                        if(!isGuru) {
-                            actionHtml = `
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                <div class="flex justify-center gap-2">
-                                    <a href="/siswa/${row.id}/edit" class="text-orange-600 hover:text-orange-900 bg-orange-50 hover:bg-orange-100 p-1.5 rounded-md transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                                    </a>
-                                    <form action="/siswa/${row.id}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus data siswa ini?');">
-                                        <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
-                                        <input type="hidden" name="_method" value="DELETE">
-                                        <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded-md transition">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>`;
-                        }
+        console.log("Fetching URL:", url); // Debugging
 
-                        tbody += `
-                        <tr class="hover:bg-orange-50/50 transition duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">${nomor}</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-medium text-gray-900">${row.nama}</span>
-                                    <span class="text-xs text-gray-500">NIS: ${row.nis ?? '-'}</span>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
-                                <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${jkClass}">${row.jenis_kelamin}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">${row.no_hp_ortu ?? '-'}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">${statusHtml}</td>
-                            ${actionHtml}
-                        </tr>`;
+        fetch(url)
+            .then(res => {
+                // Cek status HTTP
+                if (!res.ok) {
+                    throw new Error(`HTTP Error! Status: ${res.status}`);
+                }
+                // Cek content-type apakah JSON
+                const contentType = res.headers.get("content-type");
+                if (!contentType || !contentType.includes("application/json")) {
+                    return res.text().then(text => {
+                        console.error("Response bukan JSON:", text);
+                        throw new Error("Server merespon dengan HTML, bukan JSON. Cek Route/Controller.");
                     });
                 }
-                
-                document.getElementById('siswa-tbody').innerHTML = tbody;
-                // Sembunyikan pagination default saat search aktif
-                const pag = document.getElementById('pagination');
-                if(pag) pag.style.display = search ? 'none' : 'block';
+                return res.json();
+            })
+            .then(data => {
+                console.log("Data diterima:", data); // Debugging
+                renderTable(data);
+            })
+            .catch(err => {
+                console.error("Fetch Error:", err);
+                // Jangan hapus tabel jika error, biarkan data lama
             });
     }
 
-    // Debounce agar tidak request setiap ketik huruf
+    function renderTable(data) {
+        let tbody = '';
+        if (data.length === 0) {
+            tbody = `<tr><td colspan="${isGuru ? 5 : 6}" class="px-6 py-10 text-center text-gray-500">Data tidak ditemukan.</td></tr>`;
+        } else {
+            data.forEach((row, i) => {
+                const nomor = i + 1;
+                const jkClass = row.jenis_kelamin == 'L' ? 'bg-blue-100 text-blue-800' : 'bg-pink-100 text-pink-800';
+                
+                let statusHtml = '';
+                if (row.status == 'aktif') statusHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Aktif</span>';
+                else if (row.status == 'lulus') statusHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Lulus</span>';
+                else statusHtml = '<span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Keluar</span>';
+
+                let actionHtml = '';
+                if (!isGuru) {
+                    actionHtml = `
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
+                        <div class="flex justify-center gap-2">
+                            <a href="/siswa/${row.id}/edit" class="text-orange-600 hover:text-orange-900 bg-orange-50 hover:bg-orange-100 p-1.5 rounded-md transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </a>
+                            <form action="/siswa/${row.id}" method="POST" class="inline" onsubmit="return confirm('Yakin hapus?');">
+                                <input type="hidden" name="_token" value="${document.querySelector('meta[name="csrf-token"]').content}">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded-md transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </td>`;
+                }
+
+                tbody += `
+                <tr class="hover:bg-orange-50/50 transition duration-150">
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">${nomor}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium text-gray-900">${row.nama}</span>
+                            <span class="text-xs text-gray-500">NIS: ${row.nis ?? '-'}</span>
+                            ${row.kelas_nama && row.kelas_nama !== '-' ? `<span class="text-[10px] text-orange-600 bg-orange-50 px-1 rounded w-fit mt-0.5">${row.kelas_nama}</span>` : ''}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${jkClass}">${row.jenis_kelamin}</span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">${row.no_hp_ortu ?? '-'}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center">${statusHtml}</td>
+                    ${actionHtml}
+                </tr>`;
+            });
+        }
+        document.getElementById('siswa-tbody').innerHTML = tbody;
+        
+        // Hide pagination if searching
+        const pag = document.getElementById('pagination');
+        if (pag) pag.style.display = 'none';
+    }
+
     let timeout = null;
-    document.getElementById('search').addEventListener('input', function() {
+    document.getElementById('search').addEventListener('input', function(e) {
         clearTimeout(timeout);
-        timeout = setTimeout(fetchSiswa, 300);
+        // Jika kosong, reload halaman agar kembali ke pagination awal
+        if(e.target.value.trim() === "") {
+            window.location.reload(); 
+            return;
+        }
+        timeout = setTimeout(fetchSiswa, 500);
     });
 </script>
 @endsection
