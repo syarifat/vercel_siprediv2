@@ -41,7 +41,8 @@ class AbsensiGuruController extends Controller
             'tahun_ajaran_id' => $tahunId,
         ]);
 
-        return redirect()->route('absensi.guru')->with('success', 'Absensi guru berhasil disimpan.');
+        // PERBAIKAN DI SINI: route('absensi_guru.index')
+        return redirect()->route('absensi_guru.index')->with('success', 'Absensi guru berhasil disimpan.');
     }
 
     public function edit(AbsensiGuru $absensiGuru)
@@ -58,11 +59,21 @@ class AbsensiGuruController extends Controller
         ]);
 
         $absensiGuru->update($request->only(['jam_masuk', 'jam_pulang', 'status', 'keterangan']));
-        return redirect()->route('absensi.guru')->with('success', 'Data berhasil diperbarui.');
+        
+        // PERBAIKAN DI SINI: route('absensi_guru.index')
+        return redirect()->route('absensi_guru.index')->with('success', 'Data berhasil diperbarui.');
     }
     
     public function show(AbsensiGuru $absensiGuru)
     {
         return view('absensi.guru_show', ['absensi' => $absensiGuru]);
+    }
+
+    public function destroy(AbsensiGuru $absensiGuru)
+    {
+        $absensiGuru->delete();
+        
+        // PERBAIKAN DI SINI: route('absensi_guru.index')
+        return redirect()->route('absensi_guru.index')->with('success', 'Data berhasil dihapus.');
     }
 }
