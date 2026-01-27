@@ -10,7 +10,16 @@ class ApiSiswaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Siswa::query();
+        $tahunId = session('tahun_ajaran_id');
+
+        // OPTIMASI 1: Eager Loading ('with')
+        // Ambil Siswa BESERTA Rombel (yang tahun ajarannya sesuai) DAN Kelasnya sekaligus.
+        $query = Siswa::with(['rombel' => function($q) use ($tahunId) {
+            if ($tahunId) {
+                $q->where('tahun_ajaran_id', $tahunId);
+            }
+            $q->with('kelas'); // Ambil data kelas di dalam rombel
+        }]);
 
         // 1. Filter Pencarian (Nama / NIS)
         if ($request->filled('search')) {
@@ -21,10 +30,8 @@ class ApiSiswaController extends Controller
             });
         }
 
-        // 2. Filter Kelas (Opsional, via relasi rombel)
-        // Hanya jika ingin mencari siswa di kelas tertentu
+        // 2. Filter Kelas
         if ($request->filled('kelas_id')) {
-            $tahunId = session('tahun_ajaran_id');
             $query->whereHas('rombel', function($q) use ($request, $tahunId) {
                 $q->where('kelas_id', $request->kelas_id);
                 if ($tahunId) {
@@ -33,19 +40,18 @@ class ApiSiswaController extends Controller
             });
         }
 
-        // Ambil data (Limit jika tidak ada search spesifik agar ringan)
+        // Limit data agar ringan (kecuali sedang search spesifik)
         if (!$request->filled('search')) {
             $query->limit(50);
         }
 
-        $data = $query->orderBy('nama')->get()->map(function($siswa) {
-            // Ambil info kelas aktif siswa ini (jika ada)
-            // Mengambil rombel terakhir yang aktif (tahun ajaran session)
-            $tahunId = session('tahun_ajaran_id');
-            $rombel = $siswa->rombel()
-                ->when($tahunId, fn($q) => $q->where('tahun_ajaran_id', $tahunId))
-                ->with('kelas')
-                ->first();
+        // Ambil data
+        $result = $query->orderBy('nama')->get();
+
+        // Mapping Data (Sekarang tidak query database lagi, cuma ambil dari memori)
+        $data = $result->map(function($siswa) {
+            // Ambil rombel pertama dari hasil eager loading di atas
+            $rombel = $siswa->rombel->first();
 
             return [
                 'id' => $siswa->id,
@@ -54,7 +60,8 @@ class ApiSiswaController extends Controller
                 'jenis_kelamin' => $siswa->jenis_kelamin,
                 'no_hp_ortu' => $siswa->no_hp_ortu,
                 'status' => $siswa->status,
-                'kelas_nama' => $rombel ? $rombel->kelas->nama : '-', // Tampilkan kelas jika ada
+                // Data kelas diambil dari relasi yang sudah di-load (Cepat)
+                'kelas_nama' => $rombel && $rombel->kelas ? $rombel->kelas->nama : '-',
                 'nomor_absen' => $rombel ? $rombel->nomor_absen : '-'
             ];
         });
