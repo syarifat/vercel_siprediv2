@@ -108,11 +108,18 @@ Route::middleware(['auth', 'web'])->group(function () {
     | GROUP 4: INTERNAL API (AJAX FRONTEND)
     |--------------------------------------------------------------------------
     */
-    Route::prefix('api')->group(function () {
-        Route::get('/siswa', [ApiSiswaController::class, 'index']);
-        Route::get('/absensi-terbaru', [ApiAbsensiController::class, 'index']);
-        Route::get('/absensi-guru-terbaru', [ApiAbsensiGuruController::class, 'index']);
-        Route::get('/rombel-siswa', [RombelSiswaApiController::class, 'index']);
+    Route::prefix('ajax')->group(function () {
+        // Data Siswa (Master)
+        Route::get('/siswa-data', [ApiSiswaController::class, 'index']);
+        
+        // Data Absensi Siswa
+        Route::get('/absensi-data', [ApiAbsensiController::class, 'index']);
+        
+        // Data Absensi Guru
+        Route::get('/absensi-guru-data', [ApiAbsensiGuruController::class, 'index']);
+        
+        // Data Rombel
+        Route::get('/rombel-data', [RombelSiswaApiController::class, 'index']);
     });
 
 });

@@ -121,7 +121,7 @@
 
     function fetchSiswa() {
         const search = document.getElementById('search').value;
-        const url = `/api/siswa?search=${encodeURIComponent(search)}`;
+        const url = `/ajax/siswa-data?search=${encodeURIComponent(search)}`;
 
         console.log("Fetching URL:", url); // Debugging
 
