@@ -115,9 +115,6 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/absensi-guru-data', [ApiAbsensiGuruController::class, 'index']);
     });
 
-// IoT 
-Route::post('/api/absensi-api', [ApiAbsensiController::class, 'store']);
-
 });
 
 require __DIR__.'/auth.php';
