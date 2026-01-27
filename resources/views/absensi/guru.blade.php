@@ -1,410 +1,253 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto mt-8">
-	<h2 class="text-xl font-bold mb-4">Rekap Absensi Guru</h2>
+<div class="max-w-7xl mx-auto space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Rekap Absensi Guru</h2>
+            <p class="text-sm text-gray-500">Monitor kehadiran guru dan staff pengajar.</p>
+        </div>
+        
+        <a href="{{ route('absensi_guru.create') }}" class="inline-flex items-center justify-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white text-sm font-medium rounded-lg shadow-sm transition-colors duration-200">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+            Tambah Absensi
+        </a>
+    </div>
 
-	<!-- Card Rekap Status with inline details -->
-	<div class="grid grid-cols-1 gap-4 mb-4">
-		<!-- Belum Hadir -->
-		<div class="space-y-4">
-			<button type="button" onclick="toggleCardDetails('belum')" 
-					class="bg-blue-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
-					aria-controls="details-belum" aria-expanded="false">
-				<div class="text-xl sm:text-2xl font-bold text-blue-600" id="card-belum">0</div>
-				<div class="text-xs sm:text-sm font-semibold text-blue-700">Belum Hadir</div>
-			</button>
-			<div id="details-belum" class="hidden transition-all"></div>
-		</div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <button onclick="toggleGuruCard('belum')" class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-center hover:shadow-md hover:border-blue-300 transition group">
+            <div class="text-3xl font-bold text-blue-600 mb-1" id="g-belum">0</div>
+            <div class="text-xs font-semibold text-blue-800 uppercase tracking-wide group-hover:text-blue-600">Belum Hadir</div>
+        </button>
+        <button onclick="toggleGuruCard('hadir')" class="bg-green-50 border border-green-100 rounded-xl p-4 text-center hover:shadow-md hover:border-green-300 transition group">
+            <div class="text-3xl font-bold text-green-600 mb-1" id="g-hadir">0</div>
+            <div class="text-xs font-semibold text-green-800 uppercase tracking-wide group-hover:text-green-600">Hadir</div>
+        </button>
+        <button onclick="toggleGuruCard('sakit')" class="bg-red-50 border border-red-100 rounded-xl p-4 text-center hover:shadow-md hover:border-red-300 transition group">
+            <div class="text-3xl font-bold text-red-600 mb-1" id="g-sakit">0</div>
+            <div class="text-xs font-semibold text-red-800 uppercase tracking-wide group-hover:text-red-600">Sakit</div>
+        </button>
+        <button onclick="toggleGuruCard('izin')" class="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-center hover:shadow-md hover:border-yellow-300 transition group">
+            <div class="text-3xl font-bold text-yellow-600 mb-1" id="g-izin">0</div>
+            <div class="text-xs font-semibold text-yellow-800 uppercase tracking-wide group-hover:text-yellow-600">Izin</div>
+        </button>
+        <button onclick="toggleGuruCard('alpha')" class="bg-pink-50 border border-pink-100 rounded-xl p-4 text-center hover:shadow-md hover:border-pink-300 transition group">
+            <div class="text-3xl font-bold text-pink-600 mb-1" id="g-alpha">0</div>
+            <div class="text-xs font-semibold text-pink-800 uppercase tracking-wide group-hover:text-pink-600">Alpha</div>
+        </button>
+    </div>
 
-		<!-- Hadir -->
-		<div class="space-y-4">
-			<button type="button" onclick="toggleCardDetails('hadir')" 
-					class="bg-green-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
-					aria-controls="details-hadir" aria-expanded="false">
-				<div class="text-xl sm:text-2xl font-bold text-green-600" id="card-hadir">0</div>
-				<div class="text-xs sm:text-sm font-semibold text-green-700">Hadir</div>
-			</button>
-			<div id="details-hadir" class="hidden transition-all"></div>
-		</div>
+    <div id="guru-details-container" class="hidden transition-all duration-300"></div>
 
-		<!-- Izin -->
-		<div class="space-y-4">
-			<button type="button" onclick="toggleCardDetails('izin')" 
-					class="bg-yellow-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
-					aria-controls="details-izin" aria-expanded="false">
-				<div class="text-xl sm:text-2xl font-bold text-yellow-600" id="card-izin">0</div>
-				<div class="text-xs sm:text-sm font-semibold text-yellow-700">Izin</div>
-			</button>
-			<div id="details-izin" class="hidden transition-all"></div>
-		</div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div class="p-4 border-b border-gray-100 bg-gray-50 flex flex-col md:flex-row gap-4 items-center justify-between">
+            <div class="flex gap-3 w-full md:w-auto">
+                <div class="relative w-full">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z"></path></svg></span>
+                    <input type="text" id="search" placeholder="Cari Nama Guru" class="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-orange-500 focus:border-orange-500 w-full md:w-64">
+                </div>
+                <input type="date" id="tanggal" class="py-2 px-3 border border-gray-300 rounded-lg text-sm focus:ring-orange-500 focus:border-orange-500 text-gray-600">
+            </div>
+            
+            <button onclick="document.getElementById('exportModal').classList.remove('hidden')" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
+                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Export PDF
+            </button>
+        </div>
 
-		<!-- Sakit -->
-		<div class="space-y-4">
-			<button type="button" onclick="toggleCardDetails('sakit')" 
-					class="bg-red-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
-					aria-controls="details-sakit" aria-expanded="false">
-				<div class="text-xl sm:text-2xl font-bold text-red-600" id="card-sakit">0</div>
-				<div class="text-xs sm:text-sm font-semibold text-red-700">Sakit</div>
-			</button>
-			<div id="details-sakit" class="hidden transition-all"></div>
-		</div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-orange-50">
+                    <tr>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-orange-800 uppercase">No</th>
+                        <th class="px-4 py-3 text-left text-xs font-bold text-orange-800 uppercase">Nama Guru</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-orange-800 uppercase">Tanggal</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-orange-800 uppercase">Jam Masuk</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-orange-800 uppercase">Jam Pulang</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-orange-800 uppercase">Status</th>
+                        <th class="px-4 py-3 text-center text-xs font-bold text-orange-800 uppercase">Keterangan</th>
+                        @if(Auth::user()->role !== 'guru')
+                        <th class="px-4 py-3 text-center text-xs font-bold text-orange-800 uppercase">Aksi</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody id="tbody-guru" class="bg-white divide-y divide-gray-200">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-		<!-- Alpha -->
-		<div class="space-y-4">
-			<button type="button" onclick="toggleCardDetails('alpha')" 
-					class="bg-pink-100 rounded-lg shadow p-4 text-center hover:shadow-md transition focus:outline-none w-full sm:w-48" 
-					aria-controls="details-alpha" aria-expanded="false">
-				<div class="text-xl sm:text-2xl font-bold text-pink-600" id="card-alpha">0</div>
-				<div class="text-xs sm:text-sm font-semibold text-pink-700">Alpha</div>
-			</button>
-			<div id="details-alpha" class="hidden transition-all"></div>
-		</div>
-	</div>
-
-	<!-- Filter untuk View Tabel -->
-	<div class="mb-6 grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
-		<!-- Search Box -->
-		<div class="relative col-span-2 md:col-span-1">
-			<input type="text" id="search" placeholder="Masukkan nama guru"
-				class="border-2 border-gray-300 rounded-lg pl-10 pr-4 py-2 w-full
-					   focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-					   transition duration-200 shadow-sm"
-				autofocus>
-			<span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
-				<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-				</svg>
-			</span>
-		</div>
-		<!-- Filter Tanggal (untuk view tabel harian) -->
-		<div class="relative col-span-2 md:col-span-1">
-			<input type="date" id="tanggal"
-				class="border-2 border-gray-300 rounded-lg px-4 py-2 w-full
-					   focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400
-					   transition duration-200 shadow-sm text-transparent sm:text-gray-700 sm:focus:text-gray-700">
-		</div>
-
-		<!-- (kelas dropdown removed for guru view) -->
-
-		<div class="flex items-center justify-end col-span-1">
-			<button type="button" class="w-full sm:w-auto text-center bg-pink-400 hover:bg-pink-500 text-white font-semibold px-4 py-2 rounded-lg shadow transition duration-200 focus:outline-none"
-				onclick="document.getElementById('exportModal').classList.remove('hidden')">
-				Export PDF
-			</button>
-		</div>
-	</div>
-
-	<!-- Modal Export -->
-	<div id="exportModal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-		<div class="bg-white rounded-lg shadow-lg p-6 w-96">
-			<h3 class="text-lg font-bold mb-4">Export Rekap Absensi Guru</h3>
-			<!-- Filter Bulan -->
-			<div class="mb-4">
-				<label for="periode_guru" class="block text-sm font-semibold text-gray-600 mb-1">Periode (Bulan)</label>
-				<input type="month" id="periode_guru"
-					class="border-2 border-gray-300 rounded-lg px-3 py-2 w-full
-						   focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400
-						   transition duration-200 shadow-sm text-gray-700">
-			</div>
-			<!-- Tombol Aksi -->
-			<div class="flex justify-end gap-2">
-				<button type="button" class="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400 transition"
-					onclick="document.getElementById('exportModal').classList.add('hidden')">Batal</button>
-				<button type="button" class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition"
-					onclick="exportAbsensiGuru('pdf')">Download PDF</button>
-			</div>
-		</div>
-	</div>
-
-	<!-- Tabel Absensi -->
-	<div class="overflow-x-auto">
-	<table class="min-w-full border-2 border-orange-400 rounded-lg overflow-hidden shadow table-auto text-sm">
-		<thead>
-			<tr class="bg-orange-500 text-white">
-				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">No</th>
-				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400">Nama Guru</th>
-				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Tanggal</th>
-				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Jam Masuk</th>
-				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Jam Pulang</th>
-				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Status</th>
-				<th class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Keterangan</th>
-				@if(Auth::user()->role !== 'guru')
-				<th class="px-2 sm:px-4 py-1 sm:py-2 border-orange-400 text-center">Aksi</th>
-				@endif
-			</tr>
-		</thead>
-		<tbody id="tbody-absensi">
-			@foreach($absensi as $i => $row)
-			<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $i+1 }}</td>
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200">{{ $row->guru->nama ?? '-' }}</td>
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->tanggal ? \Carbon\Carbon::parse($row->tanggal)->toDateString() : '-' }}</td>
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->jam_masuk ?? '-' }}</td>
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->jam_pulang ?? '-' }}</td>
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->status }}</td>
-				<td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">{{ $row->keterangan ?? '-' }}</td>
-				@if(Auth::user()->role !== 'guru')
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
-					<a href="{{ route('absensi_guru.edit', $row) }}" class="text-blue-600">Edit</a>
-				</td>
-				@endif
-			</tr>
-			@endforeach
-		</tbody>
-	</table>
-	</div>
+<div id="exportModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-96">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Export Absensi Guru</h3>
+        <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Periode (Bulan)</label>
+            <input type="month" id="periode_guru" class="w-full border-gray-300 rounded-lg text-sm focus:ring-orange-500 focus:border-orange-500">
+        </div>
+        <div class="flex justify-end gap-2">
+            <button onclick="document.getElementById('exportModal').classList.add('hidden')" class="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium">Batal</button>
+            <button onclick="exportPdf()" class="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 shadow">Download</button>
+        </div>
+    </div>
 </div>
 @endsection
 
 @section('scripts')
 <script>
-// Full guru master list (used to compute "Belum Hadir")
-const initialGuruList = @json(\App\Models\Guru::all(['id','nama'])->toArray());
+const allGuruList = @json(\App\Models\Guru::all(['id','nama'])->toArray());
+window.guruData = [];
+window.currentGuruCard = null;
 
-// client-side holders for latest fetched data and currently opened card
-window.currentCardOpen = null;
-window.latestGuruFilteredData = [];
-window.latestGuruAllData = [];
-
-// Live fetch-based filtering: will call /api/absensi-guru-terbaru
-
-function renderTable(data) {
-	let tbody = '';
-	data.forEach((row, i) => {
-		tbody += `<tr class="bg-white border-b border-orange-200 hover:bg-orange-50">
-			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${i+1}</td>
-			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200">${row.guru_nama ?? '-'}</td>
-			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.tanggal ?? '-'}</td>
-			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.jam_masuk ?? '-'}</td>
-			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.jam_pulang ?? '-'}</td>
-			<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.status ?? '-'}</td>
-			<td class="hidden sm:table-cell px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">${row.keterangan ?? '-'}</td>
-			${window.userRole !== 'guru' ? `
-				<td class="px-2 sm:px-4 py-1 sm:py-2 border-orange-200 text-center">
-					<a href="/absensi_guru/${row.id}/edit" class="text-blue-600">Edit</a>
-				</td>
-			` : ''}
-		</tr>`;
-	});
-	document.getElementById('tbody-absensi').innerHTML = tbody;
-}
-
-function updateCards(data, filteredGuruCountMissing) {
-	let countHadir = 0, countIzin = 0, countSakit = 0, countAlpha = 0;
-	data.forEach(row => {
-		const status = (row.status || '').toString().toLowerCase();
-		if (status === 'hadir') countHadir++;
-		else if (status === 'izin') countIzin++;
-		else if (status === 'sakit') countSakit++;
-		else if (status === 'alpha') countAlpha++;
-	});
-
-	document.getElementById('card-belum').textContent = filteredGuruCountMissing;
-	document.getElementById('card-hadir').textContent = countHadir;
-	document.getElementById('card-izin').textContent = countIzin;
-	document.getElementById('card-sakit').textContent = countSakit;
-	document.getElementById('card-alpha').textContent = countAlpha;
-}
-
-function filterAbsensi() {
-	const search = document.getElementById('search').value.trim();
-	const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
-
-	// Build params for filtered fetch
-	const params = new URLSearchParams();
-	if (search) params.append('search', search);
-	if (tanggal) params.append('tanggal', tanggal);
-
-	// Fetch filtered data (for table)
-	const filteredUrl = `/api/absensi-guru-terbaru?${params.toString()}`;
-	const fetchFiltered = fetch(filteredUrl).then(r => r.json());
-
-	// Fetch all attendance for the date (no search) to compute 'belum hadir'
-	const allUrl = `/api/absensi-guru-terbaru?tanggal=${encodeURIComponent(tanggal)}`;
-	const fetchAllForDate = fetch(allUrl).then(r => r.json());
-
-	Promise.all([fetchFiltered, fetchAllForDate]).then(([filteredData, allData]) => {
-		// store latest data so card-detail panel can use it
-		window.latestGuruFilteredData = filteredData || [];
-		window.latestGuruAllData = allData || [];
-
-		// filteredData -> data to render in table
-		renderTable(window.latestGuruFilteredData);
-
-		// compute counts based on filteredData (for status cards)
-		updateCards(window.latestGuruFilteredData, Math.max(0, initialGuruList.length - [...new Set(window.latestGuruAllData.map(d => d.guru_nama))].length));
-
-		// if a card details panel is open, refresh its content
-		if (window.currentCardOpen) {
-			renderCardDetails(window.currentCardOpen);
-		}
-	}).catch(err => {
-		console.error('Failed to fetch absensi guru data', err);
-	});
-}
-
-document.getElementById('search').addEventListener('input', filterAbsensi);
-document.getElementById('tanggal').addEventListener('change', filterAbsensi);
-setInterval(filterAbsensi, 3000);
-window.addEventListener('DOMContentLoaded', () => {
-    window.userRole = '{{ Auth::user()->role }}';
-    filterAbsensi();
-});
-
-// Card detail functionality with color themes
-function toggleCardDetails(status) {
-    const container = document.getElementById(`details-${status}`);
-    const allContainers = document.querySelectorAll('[id^="details-"]');
+function fetchGuru() {
+    const search = document.getElementById('search').value;
+    const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
     
-    // Close other containers first
-    allContainers.forEach(cont => {
-        if (cont.id !== `details-${status}`) {
-            cont.classList.add('hidden');
-        }
+    // Fetch filtered (for table) & all (for stats)
+    const url = `/api/absensi-guru-terbaru?search=${encodeURIComponent(search)}&tanggal=${encodeURIComponent(tanggal)}`;
+    
+    fetch(url)
+        .then(r => r.json())
+        .then(data => {
+            window.guruData = data;
+            renderGuruTable(data);
+            updateGuruCards(data);
+            
+            if(window.currentGuruCard) {
+                renderGuruDetails(window.currentGuruCard);
+            }
+        });
+}
+
+function renderGuruTable(data) {
+    let html = '';
+    if(data.length === 0) {
+        html = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Tidak ada data.</td></tr>';
+    } else {
+        data.forEach((row, i) => {
+            html += `
+            <tr class="hover:bg-orange-50/50 transition">
+                <td class="px-4 py-3 text-center text-sm text-gray-500">${i+1}</td>
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">${row.guru_nama ?? '-'}</td>
+                <td class="px-4 py-3 text-center text-sm text-gray-500">${row.tanggal ?? '-'}</td>
+                <td class="px-4 py-3 text-center text-sm font-mono text-gray-600">${row.jam_masuk ?? '-'}</td>
+                <td class="px-4 py-3 text-center text-sm font-mono text-gray-600">${row.jam_pulang ?? '-'}</td>
+                <td class="px-4 py-3 text-center text-sm font-bold uppercase ${getGuruColor(row.status)}">${row.status ?? '-'}</td>
+                <td class="px-4 py-3 text-center text-sm text-gray-500">${row.keterangan ?? '-'}</td>
+                ${ '{{ Auth::user()->role }}' !== 'guru' ? `
+                <td class="px-4 py-3 text-center">
+                    <a href="/absensi_guru/${row.id}/edit" class="text-orange-600 hover:text-orange-900 bg-orange-50 p-1.5 rounded hover:bg-orange-100 transition text-xs font-medium">Edit</a>
+                    <a href="/absensi_guru/${row.id}" class="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded hover:bg-blue-100 transition text-xs font-medium ml-1">Detail</a>
+                </td>` : '' }
+            </tr>`;
+        });
+    }
+    document.getElementById('tbody-guru').innerHTML = html;
+}
+
+function getGuruColor(status) {
+    switch(status) {
+        case 'hadir': return 'text-green-600';
+        case 'izin': return 'text-yellow-600';
+        case 'sakit': return 'text-red-600';
+        case 'alpha': return 'text-pink-600';
+        default: return 'text-gray-600';
+    }
+}
+
+function updateGuruCards(data) {
+    let counts = { hadir: 0, izin: 0, sakit: 0, alpha: 0 };
+    // Get unique guru names present today
+    let presentNames = data.map(d => d.guru_nama);
+    let belumCount = allGuruList.filter(g => !presentNames.includes(g.nama)).length;
+
+    data.forEach(row => {
+        if(counts[row.status] !== undefined) counts[row.status]++;
     });
 
-    if (window.currentCardOpen === status) {
-        // close current
-        container.classList.add('hidden');
-        window.currentCardOpen = null;
-        return;
-    }
-    
-    window.currentCardOpen = status;
-    renderCardDetails(status);
-    container.classList.remove('hidden');
-    // scroll to details smoothly
-    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('g-belum').innerText = belumCount;
+    document.getElementById('g-hadir').innerText = counts.hadir;
+    document.getElementById('g-izin').innerText = counts.izin;
+    document.getElementById('g-sakit').innerText = counts.sakit;
+    document.getElementById('g-alpha').innerText = counts.alpha;
 }
 
-function renderCardDetails(status) {
-    const container = document.getElementById(`details-${status}`);
-    const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
+function toggleGuruCard(status) {
+    const container = document.getElementById('guru-details-container');
+    if (window.currentGuruCard === status) {
+        container.classList.add('hidden');
+        window.currentGuruCard = null;
+    } else {
+        window.currentGuruCard = status;
+        renderGuruDetails(status);
+        container.classList.remove('hidden');
+    }
+}
 
-    const filtered = window.latestGuruFilteredData || [];
-    const allData = window.latestGuruAllData || [];
-
-    // Get color scheme based on status
-    const getColorScheme = (status) => {
-        switch(status) {
-            case 'belum':
-                return {
-                    border: 'border-blue-200',
-                    bg: 'bg-blue-100',
-                    text: 'text-blue-800',
-                    hover: 'hover:bg-blue-50'
-                };
-            case 'hadir':
-                return {
-                    border: 'border-green-200',
-                    bg: 'bg-green-100',
-                    text: 'text-green-800',
-                    hover: 'hover:bg-green-50'
-                };
-            case 'izin':
-                return {
-                    border: 'border-yellow-200',
-                    bg: 'bg-yellow-100',
-                    text: 'text-yellow-800',
-                    hover: 'hover:bg-yellow-50'
-                };
-            case 'sakit':
-                return {
-                    border: 'border-red-200',
-                    bg: 'bg-red-100',
-                    text: 'text-red-800',
-                    hover: 'hover:bg-red-50'
-                };
-            case 'alpha':
-                return {
-                    border: 'border-pink-200',
-                    bg: 'bg-pink-100',
-                    text: 'text-pink-800',
-                    hover: 'hover:bg-pink-50'
-                };
-            default:
-                return {
-                    border: 'border-gray-200',
-                    bg: 'bg-gray-100',
-                    text: 'text-gray-800',
-                    hover: 'hover:bg-gray-50'
-                };
-        }
-    };
-
-    const colors = getColorScheme(status);
-
-    const renderRows = (rows) => {
-        if (!rows.length) return `<tr><td colspan="4" class="px-4 py-2 text-center text-gray-500">Tidak ada data</td></tr>`;
-        return rows.map((r, i) => `
-            <tr class="bg-white border-b ${colors.border} ${colors.hover}">
-                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${i+1}</td>
-                <td class="px-2 sm:px-4 py-1 sm:py-2">${r.guru_nama ?? r.nama ?? '-'}</td>
-                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${r.jam_masuk ?? '-'}</td>
-                <td class="px-2 sm:px-4 py-1 sm:py-2 text-center">${r.keterangan ?? '-'}</td>
-            </tr>
-        `).join('');
-    };
-
+function renderGuruDetails(status) {
+    const container = document.getElementById('guru-details-container');
+    let rows = [];
     let title = '';
-    let rowsHtml = '';
+    let colorClass = '';
 
     if (status === 'belum') {
-        title = 'Daftar Belum Hadir';
-        const presentSet = new Set(allData.map(a => a.guru_nama));
-        const missing = initialGuruList
-            .filter(g => !presentSet.has(g.nama))
-            .map(g => ({ nama: g.nama }));
-        // adapt rows to table shape
-        const rows = missing.map(m => ({ guru_nama: m.nama }));
-        rowsHtml = renderRows(rows);
+        title = 'Guru Belum Hadir';
+        colorClass = 'border-blue-200 bg-blue-50';
+        const presentNames = window.guruData.map(d => d.guru_nama);
+        rows = allGuruList.filter(g => !presentNames.includes(g.nama))
+            .map(g => ({ nama: g.nama, jam: 'Belum Scan', ket: '-' }));
     } else {
-        title = 'Daftar ' + status.charAt(0).toUpperCase() + status.slice(1);
-        const filteredRows = filtered
-            .filter(a => (a.status || '').toString().toLowerCase() === status)
-            .map(a => ({ 
-                guru_nama: a.guru_nama, 
-                jam_masuk: a.jam_masuk,
-                keterangan: a.keterangan
-            }));
-        rowsHtml = renderRows(filteredRows);
+        title = `Guru ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+        const map = { hadir: 'green', sakit: 'red', izin: 'yellow', alpha: 'pink' };
+        const c = map[status] || 'gray';
+        colorClass = `border-${c}-200 bg-${c}-50`;
+        
+        rows = window.guruData.filter(d => d.status === status)
+            .map(d => ({ nama: d.guru_nama, jam: d.jam_masuk || '-', ket: d.keterangan || '-' }));
     }
 
-    container.innerHTML = `
-        <div class="bg-white border rounded-lg shadow p-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="font-semibold text-lg ${colors.text}">${title} — ${tanggal}</h3>
-                <button type="button" onclick="toggleCardDetails('${status}')" class="text-sm text-gray-600 hover:text-gray-800">Tutup</button>
+    let html = `
+        <div class="mb-6 rounded-xl border ${colorClass} p-4">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="font-bold text-gray-800">${title}</h3>
+                <button onclick="toggleGuruCard('${status}')" class="text-gray-500 hover:text-gray-700">&times;</button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full border-2 ${colors.border} rounded-lg overflow-hidden shadow table-auto text-sm">
-                    <thead>
-                        <tr class="${colors.bg} ${colors.text}">
-                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">No</th>
-                            <th class="px-2 sm:px-4 py-1 sm:py-2">Nama Guru</th>
-                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">Jam Masuk</th>
-                            <th class="px-2 sm:px-4 py-1 sm:py-2 text-center">Keterangan</th>
+            <div class="max-h-60 overflow-y-auto bg-white rounded-lg border border-gray-200">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50 sticky top-0">
+                        <tr>
+                            <th class="px-4 py-2 text-left">Nama Guru</th>
+                            <th class="px-4 py-2 text-center">Jam</th>
+                            <th class="px-4 py-2 text-center">Keterangan</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        ${rowsHtml}
+                    <tbody class="divide-y divide-gray-100">
+                        ${rows.length ? rows.map(r => `
+                            <tr>
+                                <td class="px-4 py-2">${r.nama}</td>
+                                <td class="px-4 py-2 text-center font-mono text-gray-600">${r.jam}</td>
+                                <td class="px-4 py-2 text-center text-gray-500">${r.ket}</td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="3" class="p-4 text-center text-gray-400">Tidak ada data</td></tr>'}
                     </tbody>
                 </table>
             </div>
         </div>
     `;
+    container.innerHTML = html;
 }
 
-function exportAbsensiGuru(type) {
-	const periode = document.getElementById('periode_guru').value;
-	if (!periode) {
-		alert('Silakan pilih periode (bulan) terlebih dahulu');
-		return;
-	}
-	document.getElementById('exportModal').classList.add('hidden');
-	let url = `/rekap/absensi-guru/export/${type}?periode=${periode}`;
-	window.location.href = url;
+function exportPdf() {
+    const periode = document.getElementById('periode_guru').value;
+    if(!periode) return alert('Pilih periode dulu');
+    window.location.href = `/rekap/absensi-guru/export/pdf?periode=${periode}`;
+    document.getElementById('exportModal').classList.add('hidden');
 }
+
+// Init
+document.getElementById('search').addEventListener('input', () => setTimeout(fetchGuru, 500));
+document.getElementById('tanggal').addEventListener('change', fetchGuru);
+setInterval(fetchGuru, 5000);
+fetchGuru();
 </script>
 @endsection
