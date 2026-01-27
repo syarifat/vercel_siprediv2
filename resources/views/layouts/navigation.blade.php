@@ -65,7 +65,6 @@
                             </button>
                             <div x-show="open" x-cloak class="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 border border-gray-100 z-50">
                                 <a href="{{ route('whatsapp.index') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50">Broadcast</a>
-                                <a href="{{ route('whatsapp.qr') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50">Scan QR</a>
                                 <a href="{{ route('whatsapp.report') }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-orange-50">Laporan</a>
                             </div>
                         </div>
