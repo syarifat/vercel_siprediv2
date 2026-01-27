@@ -11,13 +11,13 @@ class AbsensiGuruController extends Controller
 {
     public function index()
     {
-        return view('absensi_guru.index'); // Data load by AJAX
+        return view('absensi.guru'); // Data load by AJAX
     }
 
     public function create()
     {
         $gurus = Guru::where('status', 'aktif')->orderBy('nama')->get();
-        return view('absensi_guru.create', compact('gurus'));
+        return view('absensi.guru_create', compact('gurus'));
     }
 
     public function store(Request $request)
@@ -41,13 +41,13 @@ class AbsensiGuruController extends Controller
             'tahun_ajaran_id' => $tahunId,
         ]);
 
-        return redirect()->route('absensi_guru.index')->with('success', 'Absensi guru berhasil disimpan.');
+        return redirect()->route('absensi.guru')->with('success', 'Absensi guru berhasil disimpan.');
     }
 
     public function edit(AbsensiGuru $absensiGuru)
     {
         $gurus = Guru::all();
-        return view('absensi_guru.edit', ['absensi' => $absensiGuru, 'gurus' => $gurus]);
+        return view('absensi.guru_edit', ['absensi' => $absensiGuru, 'gurus' => $gurus]);
     }
 
     public function update(Request $request, AbsensiGuru $absensiGuru)
@@ -58,11 +58,11 @@ class AbsensiGuruController extends Controller
         ]);
 
         $absensiGuru->update($request->only(['jam_masuk', 'jam_pulang', 'status', 'keterangan']));
-        return redirect()->route('absensi_guru.index')->with('success', 'Data berhasil diperbarui.');
+        return redirect()->route('absensi.guru')->with('success', 'Data berhasil diperbarui.');
     }
     
     public function show(AbsensiGuru $absensiGuru)
     {
-        return view('absensi_guru.show', ['absensi' => $absensiGuru]);
+        return view('absensi.guru_show', ['absensi' => $absensiGuru]);
     }
 }
