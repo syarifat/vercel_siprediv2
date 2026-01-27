@@ -109,17 +109,10 @@ Route::middleware(['auth', 'web'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::prefix('ajax')->group(function () {
-        // Data Siswa (Master)
-        Route::get('/siswa-data', [ApiSiswaController::class, 'index']);
-        
         // Data Absensi Siswa
         Route::get('/absensi-data', [ApiAbsensiController::class, 'index']);
-        
         // Data Absensi Guru
         Route::get('/absensi-guru-data', [ApiAbsensiGuruController::class, 'index']);
-        
-        // Data Rombel
-        Route::get('/rombel-data', [RombelSiswaApiController::class, 'index']);
     });
 
 });

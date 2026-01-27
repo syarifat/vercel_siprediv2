@@ -11,12 +11,23 @@ class SiswaController extends Controller
 {
     public function index(Request $request)
     {
+        // 1. Mulai Query
         $query = Siswa::query();
+
+        // 2. Cek apakah ada input pencarian
         if ($request->filled('search')) {
-            $query->where('nama', 'like', '%' . $request->search . '%')
-                  ->orWhere('nis', 'like', '%' . $request->search . '%');
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', '%' . $search . '%')
+                  ->orWhere('nis', 'like', '%' . $search . '%');
+            });
         }
-        $siswa = $query->orderBy('nama')->paginate(20);
+
+        // 3. Ambil data dengan Pagination (20 per halaman)
+        // orderBy nama agar rapi
+        $siswa = $query->orderBy('nama', 'asc')->paginate(20);
+
+        // 4. Return ke View
         return view('siswa.index', compact('siswa'));
     }
 
