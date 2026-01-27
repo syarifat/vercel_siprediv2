@@ -95,49 +95,67 @@
 
 @section('scripts')
 <script>
-const allGuruList = @json(\App\Models\Guru::all(['id','nama'])->toArray());
+// Data master guru untuk hitung "Belum Hadir"
+const allGuruList = @json(\App\Models\Guru::where('status', 'aktif')->get(['id','nama'])); 
 window.guruData = [];
 window.currentGuruCard = null;
 
+// Init Dates
+document.getElementById('tanggal').value = new Date().toISOString().slice(0,10);
+
 function fetchGuru() {
     const search = document.getElementById('search').value;
-    const tanggal = document.getElementById('tanggal').value || new Date().toISOString().slice(0,10);
+    const tanggal = document.getElementById('tanggal').value;
     
-    // Fetch filtered (for table) & all (for stats)
-    const url = `/api/absensi-guru-terbaru?search=${encodeURIComponent(search)}&tanggal=${encodeURIComponent(tanggal)}`;
+    // PERBAIKAN URL: Sesuaikan dengan routes/web.php (/ajax/absensi-guru-data)
+    const url = `/ajax/absensi-guru-data?search=${encodeURIComponent(search)}&tanggal=${encodeURIComponent(tanggal)}`;
     
-    fetch(url)
-        .then(r => r.json())
-        .then(data => {
-            window.guruData = data;
-            renderGuruTable(data);
-            updateGuruCards(data);
-            
-            if(window.currentGuruCard) {
-                renderGuruDetails(window.currentGuruCard);
-            }
-        });
+    fetch(url, {
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(r => {
+        if (!r.ok) throw new Error("HTTP Error " + r.status);
+        return r.json();
+    })
+    .then(data => {
+        window.guruData = data;
+        renderGuruTable(data);
+        updateGuruCards(data);
+        
+        if(window.currentGuruCard) {
+            renderGuruDetails(window.currentGuruCard);
+        }
+    })
+    .catch(err => console.error("Error Fetching Guru:", err));
 }
 
 function renderGuruTable(data) {
     let html = '';
+    const userRole = '{{ Auth::user()->role }}'; // Ambil role dari PHP
+
     if(data.length === 0) {
-        html = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Tidak ada data.</td></tr>';
+        html = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">Tidak ada data absensi guru.</td></tr>';
     } else {
         data.forEach((row, i) => {
             html += `
-            <tr class="hover:bg-orange-50/50 transition">
+            <tr class="hover:bg-orange-50/50 transition duration-150">
                 <td class="px-4 py-3 text-center text-sm text-gray-500">${i+1}</td>
                 <td class="px-4 py-3 text-sm font-medium text-gray-900">${row.guru_nama ?? '-'}</td>
                 <td class="px-4 py-3 text-center text-sm text-gray-500">${row.tanggal ?? '-'}</td>
                 <td class="px-4 py-3 text-center text-sm font-mono text-gray-600">${row.jam_masuk ?? '-'}</td>
                 <td class="px-4 py-3 text-center text-sm font-mono text-gray-600">${row.jam_pulang ?? '-'}</td>
-                <td class="px-4 py-3 text-center text-sm font-bold uppercase ${getGuruColor(row.status)}">${row.status ?? '-'}</td>
+                <td class="px-4 py-3 text-center text-sm font-bold uppercase">
+                    <span class="${getGuruColor(row.status)} bg-opacity-20 px-2 py-1 rounded bg-gray-100">${row.status ?? '-'}</span>
+                </td>
                 <td class="px-4 py-3 text-center text-sm text-gray-500">${row.keterangan ?? '-'}</td>
-                ${ '{{ Auth::user()->role }}' !== 'guru' ? `
+                ${ userRole !== 'guru' ? `
                 <td class="px-4 py-3 text-center">
-                    <a href="/absensi_guru/${row.id}/edit" class="text-orange-600 hover:text-orange-900 bg-orange-50 p-1.5 rounded hover:bg-orange-100 transition text-xs font-medium">Edit</a>
-                    <a href="/absensi_guru/${row.id}" class="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded hover:bg-blue-100 transition text-xs font-medium ml-1">Detail</a>
+                    <div class="flex justify-center gap-1">
+                        <a href="/absensi_guru/${row.id}/edit" class="text-orange-600 hover:text-orange-900 bg-orange-50 p-1.5 rounded hover:bg-orange-100 transition text-xs font-medium">Edit</a>
+                    </div>
                 </td>` : '' }
             </tr>`;
         });
@@ -157,13 +175,16 @@ function getGuruColor(status) {
 
 function updateGuruCards(data) {
     let counts = { hadir: 0, izin: 0, sakit: 0, alpha: 0 };
-    // Get unique guru names present today
-    let presentNames = data.map(d => d.guru_nama);
-    let belumCount = allGuruList.filter(g => !presentNames.includes(g.nama)).length;
-
+    
+    // Hitung kehadiran
     data.forEach(row => {
         if(counts[row.status] !== undefined) counts[row.status]++;
     });
+
+    // Hitung Belum Hadir (Guru Aktif - Guru yang sudah absen hari ini)
+    // Bandingkan nama (atau idealnya ID jika API mengirim ID guru)
+    let presentNames = data.map(d => d.guru_nama);
+    let belumCount = allGuruList.filter(g => !presentNames.includes(g.nama)).length;
 
     document.getElementById('g-belum').innerText = belumCount;
     document.getElementById('g-hadir').innerText = counts.hadir;
@@ -195,7 +216,7 @@ function renderGuruDetails(status) {
         colorClass = 'border-blue-200 bg-blue-50';
         const presentNames = window.guruData.map(d => d.guru_nama);
         rows = allGuruList.filter(g => !presentNames.includes(g.nama))
-            .map(g => ({ nama: g.nama, jam: 'Belum Scan', ket: '-' }));
+            .map(g => ({ nama: g.nama, jam: '<span class="italic text-gray-400">Belum Scan</span>', ket: '-' }));
     } else {
         title = `Guru ${status.charAt(0).toUpperCase() + status.slice(1)}`;
         const map = { hadir: 'green', sakit: 'red', izin: 'yellow', alpha: 'pink' };
@@ -207,24 +228,26 @@ function renderGuruDetails(status) {
     }
 
     let html = `
-        <div class="mb-6 rounded-xl border ${colorClass} p-4">
+        <div class="mb-6 rounded-xl border ${colorClass} p-4 animate-fade-in-down">
             <div class="flex justify-between items-center mb-3">
-                <h3 class="font-bold text-gray-800">${title}</h3>
-                <button onclick="toggleGuruCard('${status}')" class="text-gray-500 hover:text-gray-700">&times;</button>
+                <h3 class="font-bold text-gray-800 flex items-center gap-2">
+                    <span class="w-2 h-6 rounded-full bg-gray-400"></span> ${title}
+                </h3>
+                <button onclick="toggleGuruCard('${status}')" class="text-gray-500 hover:text-gray-700 font-bold text-xl">&times;</button>
             </div>
             <div class="max-h-60 overflow-y-auto bg-white rounded-lg border border-gray-200">
                 <table class="min-w-full text-sm">
                     <thead class="bg-gray-50 sticky top-0">
                         <tr>
-                            <th class="px-4 py-2 text-left">Nama Guru</th>
-                            <th class="px-4 py-2 text-center">Jam</th>
-                            <th class="px-4 py-2 text-center">Keterangan</th>
+                            <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Nama Guru</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase">Jam</th>
+                            <th class="px-4 py-2 text-center text-xs font-semibold text-gray-600 uppercase">Keterangan</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         ${rows.length ? rows.map(r => `
-                            <tr>
-                                <td class="px-4 py-2">${r.nama}</td>
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-4 py-2 font-medium text-gray-700">${r.nama}</td>
                                 <td class="px-4 py-2 text-center font-mono text-gray-600">${r.jam}</td>
                                 <td class="px-4 py-2 text-center text-gray-500">${r.ket}</td>
                             </tr>
@@ -239,15 +262,29 @@ function renderGuruDetails(status) {
 
 function exportPdf() {
     const periode = document.getElementById('periode_guru').value;
-    if(!periode) return alert('Pilih periode dulu');
+    if(!periode) {
+        alert('Mohon pilih periode (bulan & tahun) terlebih dahulu.');
+        return;
+    }
+    // Redirect ke route export PDF
     window.location.href = `/rekap/absensi-guru/export/pdf?periode=${periode}`;
     document.getElementById('exportModal').classList.add('hidden');
 }
 
-// Init
-document.getElementById('search').addEventListener('input', () => setTimeout(fetchGuru, 500));
+// --- INIT ---
+// Debounce search input
+let searchTimeout;
+document.getElementById('search').addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(fetchGuru, 500);
+});
+
 document.getElementById('tanggal').addEventListener('change', fetchGuru);
+
+// Refresh data tiap 5 detik
 setInterval(fetchGuru, 5000);
+
+// Load pertama kali
 fetchGuru();
 </script>
 @endsection
