@@ -109,33 +109,4 @@ Route::middleware(['auth', 'web'])->group(function () {
 
 });
 
-// --- ROUTE DARURAT UNTUK CLEAR CACHE DI VERCEL ---
-Route::get('/force-clear', function() {
-    try {
-        \Artisan::call('route:clear');
-        \Artisan::call('config:clear');
-        \Artisan::call('cache:clear');
-        \Artisan::call('optimize:clear');
-        return "Cache Berhasil Dibersihkan! Coba test API lagi.";
-    } catch (\Exception $e) {
-        return "Gagal: " . $e->getMessage();
-    }
-});
-
-// --- ROUTE UNTUK CEK APAKAH ROUTE SUDAH TERDAFTAR ---
-Route::get('/cek-route', function() {
-    $routes = \Route::getRoutes();
-    $list = [];
-    foreach ($routes as $route) {
-        if (str_contains($route->uri(), 'absensi-api')) {
-            $list[] = [
-                'method' => implode('|', $route->methods()),
-                'uri' => $route->uri(),
-                'action' => $route->getActionName()
-            ];
-        }
-    }
-    return $list;
-});
-
 require __DIR__.'/auth.php';
