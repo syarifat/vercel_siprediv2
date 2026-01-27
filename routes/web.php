@@ -45,16 +45,6 @@ Route::post('/set-password', [SetPasswordController::class, 'store'])->name('set
 
 /*
 |--------------------------------------------------------------------------
-| GROUP 2: API HARDWARE / IOT (Bypass CSRF via VerifyCsrfToken)
-|--------------------------------------------------------------------------
-*/
-Route::prefix('api')->group(function () {
-    Route::post('/absensi-api', [ApiAbsensiController::class, 'store']); 
-    Route::get('/siswa-api', [ApiSiswaController::class, 'index']);
-});
-
-/*
-|--------------------------------------------------------------------------
 | GROUP 3: WEB AUTH (Wajib Login)
 |--------------------------------------------------------------------------
 */
@@ -113,6 +103,8 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/siswa-data', [ApiSiswaController::class, 'index']);
         // Data Absensi Guru
         Route::get('/absensi-guru-data', [ApiAbsensiGuruController::class, 'index']);
+        Route::post('/absensi-api', [ApiAbsensiController::class, 'store']); 
+        Route::get('/siswa-api', [ApiSiswaController::class, 'index']);
     });
 
 });
