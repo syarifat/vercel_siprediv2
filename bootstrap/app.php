@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
-            'api/absensi-api',  // <--- Tambahkan baris ini
+            'ajax/absensi-api',  // <--- Tambahkan baris ini
             'webhook/*',        // (Ini untuk Fonnte jika ada)
         ]);
     })
