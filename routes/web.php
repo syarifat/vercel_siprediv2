@@ -103,8 +103,6 @@ Route::middleware(['auth', 'web'])->group(function () {
         Route::get('/siswa-data', [ApiSiswaController::class, 'index']);
         // Data Absensi Guru
         Route::get('/absensi-guru-data', [ApiAbsensiGuruController::class, 'index']);
-        Route::post('/absensi-api', [ApiAbsensiController::class, 'store']); 
-        Route::get('/siswa-api', [ApiSiswaController::class, 'index']);
     });
 
 });
