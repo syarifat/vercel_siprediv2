@@ -106,4 +106,7 @@ Route::middleware(['auth', 'web'])->group(function () {
 
 });
 
+Route::post('/absensi-api', [ApiAbsensiController::class, 'store']);
+Route::get('/ping', fn () => 'OK');
+
 require __DIR__.'/auth.php';
