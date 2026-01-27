@@ -100,7 +100,6 @@ Route::middleware(['auth', 'web'])->group(function () {
     // --- WHATSAPP GATEWAY (Ini yang tadi error) ---
     Route::get('/whatsapp', [WhatsappController::class, 'index'])->name('whatsapp.index');
     Route::post('/whatsapp/send', [WhatsappController::class, 'send'])->name('whatsapp.send');
-    Route::get('/whatsapp/qr', [WhatsappController::class, 'qr'])->name('whatsapp.qr');
     Route::get('/whatsapp/report', [WhatsappController::class, 'report'])->name('whatsapp.report');
 
     /*

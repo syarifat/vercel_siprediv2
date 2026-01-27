@@ -7,15 +7,57 @@ use App\Models\Siswa;
 use App\Models\Kelas;
 use App\Models\RombelSiswa;
 use App\Models\Report;
-use GuzzleHttp\Client; // Pastikan install guzzlehttp/guzzle
+use GuzzleHttp\Client;
 
 class WhatsappController extends Controller
 {
+    // Token sebaiknya ditaruh di .env (FONNTE_TOKEN), tapi ini hardcode sesuai request
+    private $token = 'JMyNJwRy999NVUj4eHfS'; 
+
     public function index()
     {
-        $kelas = Kelas::all();
-        $siswa = Siswa::where('status', 'aktif')->get();
-        return view('whatsapp.index', compact('kelas', 'siswa'));
+        $client = new Client();
+        $isConnected = false;
+        $qrCode = null;
+        $deviceInfo = null;
+
+        // 1. Cek Status Device ke Fonnte
+        try {
+            $response = $client->post('https://api.fonnte.com/device', [
+                'headers' => ['Authorization' => $this->token],
+            ]);
+            $data = json_decode($response->getBody(), true);
+            
+            // Fonnte biasanya return: status, device_status, name, expired, dll
+            if (isset($data['device_status']) && $data['device_status'] == 'connect') {
+                $isConnected = true;
+                $deviceInfo = $data;
+            }
+        } catch (\Exception $e) {
+            $isConnected = false;
+        }
+
+        // 2. Logika Tampilan
+        if ($isConnected) {
+            // JIKA CONNECT: Siapkan data untuk Form Broadcast
+            $kelas = Kelas::all();
+            $siswa = Siswa::where('status', 'aktif')->get();
+            
+            return view('whatsapp.index', compact('isConnected', 'kelas', 'siswa', 'deviceInfo'));
+        } else {
+            // JIKA DISCONNECT: Ambil QR Code
+            try {
+                $responseQr = $client->post('https://api.fonnte.com/qr', [
+                    'headers' => ['Authorization' => $this->token],
+                ]);
+                $dataQr = json_decode($responseQr->getBody(), true);
+                $qrCode = $dataQr['url'] ?? null; // Base64 image string
+            } catch (\Exception $e) {
+                $qrCode = null;
+            }
+
+            return view('whatsapp.index', compact('isConnected', 'qrCode'));
+        }
     }
 
     public function send(Request $request)
@@ -39,19 +81,18 @@ class WhatsappController extends Controller
             $nomorTujuan[] = $request->no_hp_ortu;
         }
 
-        // Filter nomor kosong & duplikat
         $nomorTujuan = array_unique(array_filter($nomorTujuan));
 
         if (empty($nomorTujuan)) {
             return back()->with('error', 'Tidak ada nomor tujuan yang valid.');
         }
 
-        // Logic kirim Fonnte
         $client = new Client();
+        // Kirim Broadcast (Looping sederhana, idealnya pakai Job Queue Laravel)
         foreach ($nomorTujuan as $nomor) {
             try {
                 $client->post('https://api.fonnte.com/send', [
-                    'headers' => ['Authorization' => 'JMyNJwRy999NVUj4eHfS'], // Ganti Token Fonnte
+                    'headers' => ['Authorization' => $this->token],
                     'form_params' => [
                         'target' => $nomor,
                         'message' => $request->pesan,
@@ -59,31 +100,11 @@ class WhatsappController extends Controller
                     ],
                 ]);
             } catch (\Exception $e) {
-                // Log error tapi lanjut loop
                 \Log::error("Gagal kirim WA ke $nomor: " . $e->getMessage());
             }
         }
 
-        return back()->with('success', 'Pesan broadcast sedang dikirim.');
-    }
-
-    public function qr()
-    {
-        // Logic ambil QR Fonnte
-        $client = new Client();
-        try {
-            $response = $client->post('https://api.fonnte.com/qr', [
-                'headers' => ['Authorization' => 'JMyNJwRy999NVUj4eHfS'],
-            ]);
-            $data = json_decode($response->getBody(), true);
-            $qr = $data['url'] ?? null;
-            $reason = $data['reason'] ?? null;
-        } catch (\Exception $e) {
-            $qr = null;
-            $reason = $e->getMessage();
-        }
-
-        return view('whatsapp.qr', compact('qr', 'reason'));
+        return back()->with('success', 'Pesan broadcast sedang dikirim ke server WhatsApp.');
     }
 
     public function report()
@@ -92,17 +113,15 @@ class WhatsappController extends Controller
         return view('whatsapp.report', compact('reports'));
     }
     
-    // Webhook Fonnte untuk update status pesan
     public function webhook(Request $request)
     {
         $data = $request->all();
-        // Simpan log ke tabel Report
         if(isset($data['id'])) {
             Report::updateOrCreate(
                 ['message_id' => $data['id']],
                 [
                     'status' => $data['status'] ?? 'unknown',
-                    'target' => $data['sender'] ?? '-', // kadang sender, kadang target tergantung webhook
+                    'target' => $data['sender'] ?? '-', 
                     'message' => $data['message'] ?? '-',
                 ]
             );
