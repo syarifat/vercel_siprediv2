@@ -18,25 +18,44 @@ class ApiAbsensiController extends Controller
     // API FRONTEND: GET DATA (Untuk Tabel)
     public function index(Request $request)
     {
-        $query = Absensi::with(['rombel.siswa', 'rombel.kelas'])->orderBy('created_at', 'desc');
+        // Default tanggal hari ini jika tidak ada filter
+        $tanggal = $request->input('tanggal', Carbon::now()->toDateString());
         
+        $query = Absensi::with(['rombel.siswa', 'rombel.kelas'])
+            ->orderBy('created_at', 'desc');
+        
+        // Filter Wajib: Tahun Ajaran Session
         $tahunId = session('tahun_ajaran_id');
-        if($tahunId) $query->whereHas('rombel', fn($q)=>$q->where('tahun_ajaran_id', $tahunId));
+        if($tahunId) {
+            $query->whereHas('rombel', fn($q) => $q->where('tahun_ajaran_id', $tahunId));
+        }
         
-        if($request->filled('tanggal')) $query->whereDate('tanggal', $request->tanggal);
-        if($request->filled('kelas_id')) $query->whereHas('rombel', fn($q)=>$q->where('kelas_id', $request->kelas_id));
-        
-        if($request->filled('search')) {
-            $s = $request->search;
-            $query->whereHas('rombel.siswa', fn($q)=>$q->where('nama','like',"%$s%")->orWhere('nis','like',"%$s%"));
+        // Filter Tanggal
+        if($request->filled('tanggal')) {
+            $query->whereDate('tanggal', $request->tanggal);
         }
 
-        // Limit jika tidak ada filter spesifik agar ringan
-        if(!$request->filled('tanggal') && !$request->filled('kelas_id')) {
-            $query->limit(50);
+        // Filter Kelas
+        if($request->filled('kelas_id')) {
+            $query->whereHas('rombel', fn($q) => $q->where('kelas_id', $request->kelas_id));
+        }
+        
+        // Filter Search (Nama Siswa)
+        if($request->filled('search')) {
+            $s = $request->search;
+            $query->whereHas('rombel.siswa', fn($q) => 
+                $q->where('nama','like',"%$s%")->orWhere('nis','like',"%$s%")
+            );
+        }
+
+        // LOGIC PENTING: 
+        // Jika sedang memfilter (tanggal/kelas/search), AMBIL SEMUA DATA (Limit besar)
+        // Agar rekap di frontend akurat (misal ada 14 siswa hadir, muncul semua)
+        if($request->filled('tanggal') || $request->filled('kelas_id') || $request->filled('search')) {
+            $query->limit(500); 
         } else {
-            // Jika ada filter tanggal, ambil semua (untuk hitungan rekap yang akurat)
-            $query->limit(1000); 
+            // Jika view awal kosong (tanpa filter spesifik), limit 50 biar ringan
+            $query->limit(50);
         }
 
         $data = $query->get()->map(function($d) {
@@ -53,6 +72,7 @@ class ApiAbsensiController extends Controller
                 'keterangan' => $d->keterangan
             ];
         });
+
         return response()->json($data);
     }
 
